@@ -49,8 +49,10 @@ public class Main {
         System.out.print("Enter new password: ");
         String password = s.nextLine();
 
-        User u = new User(username, password, conn);
-        u.saveUser(conn);
+        String userId = UserService.generateId(conn);
+        
+        User u = new User(userId, username, password);
+        UserService.saveUser(u, conn);
 
         System.out.print("Enter first name: ");
         String firstName = s.nextLine();
@@ -64,8 +66,10 @@ public class Main {
         System.out.print("Enter phone number: ");
         String phone = s.nextLine();
 
-        Passenger p = new Passenger(u, firstName, lastName, passportNo, phone, conn);
-        p.savePassenger(conn);
+        String passengerId = PassengerService.generateId(conn);
+        
+        Passenger p = new Passenger(passengerId, u, firstName, lastName, passportNo, phone);
+        PassengerService.savePassenger(p, conn);
 
         System.out.println("\nNew user created successfully.");
     }
@@ -91,10 +95,23 @@ public class Main {
             String role = rs.getString("role");
             System.out.println("\nWelcome, " + username + " (" + role + ")");
             
+            String passengerId = rs.getString("passenger_id");
+            String firstName = rs.getString("first_name");
+            String lastName = rs.getString("last_name");
+            String passportNo = rs.getString("passport_no");
+            String phone = rs.getString("phone");
+            String userId = rs.getString("user_id");
+            
+            User u = UserService.getUserById(userId, conn);
+            
+            Passenger p = new Passenger(passengerId, u, firstName, lastName, passportNo, phone);
+            
             if (role.equalsIgnoreCase("admin")) {
                 adminMenu(conn);
             } else if (role.equalsIgnoreCase("passenger")) {
-                displayPassengerDetails(rs, conn);
+//               displayPassengerDetails(rs, conn);
+            	passengerMenu(p, conn);
+            	
             }
             
         } else {
@@ -115,6 +132,7 @@ public class Main {
             System.out.println("6. Edit Flight");
             System.out.println("7. Delete Aircraft");
             System.out.println("8. Delete Flight");
+            System.out.println("9. Find Flights by Route");
             System.out.println("10. Show All Aircrafts");
             System.out.println("20. Show All Flights");
             System.out.println("0. Logout");
@@ -148,6 +166,9 @@ public class Main {
                 	break;
                 case 8:
                 	deleteFlight(conn);
+                	break;
+                case 9:
+                	findFlightByRoute(conn);
                 	break;
                 	
                 	
@@ -400,6 +421,87 @@ public class Main {
     	}
     	
     	return;
+    }
+    
+    
+    private static void findFlightByRoute(Connection conn) throws SQLException {
+    	
+    	System.out.print("Enter origin: ");
+    	String origin = s.nextLine();
+    	
+    	System.out.print("Enter destination: ");
+    	String destination = s.nextLine();
+    	
+    	Airline.findFlightsByRoute(origin, destination, conn);
+    }
+    
+    private static void passengerMenu(Passenger p, Connection conn) throws SQLException {
+    	boolean psgRunning = true;
+    	
+    	while (psgRunning) {
+    		System.out.println("\n------------------------------------\n");
+        	System.out.print(p.getFirstName() + "\t" + p.getLastName() + "\t" + p.getPassportNo() + "\t" + p.getPhone());
+        	System.out.println("\n------------------------------------\n");
+        	
+        	System.out.println("10. Edit profile");
+        	System.out.println("0. Logout");
+        	
+        	System.out.println();
+        	
+        	System.out.print("Choose an option: ");
+        	int option = s.nextInt(); s.nextLine();
+        	
+        	System.out.println();
+        	
+        	switch (option) {
+        		case 10:
+        			editProfile(p, conn);
+        			break;
+        			
+        			
+        		case 0:
+        			psgRunning = false;
+        			System.out.println("\nLogout successfully\n");
+        			break;
+        	}
+    	}
+    	
+    }
+    
+    private static void editProfile(Passenger p, Connection conn) throws SQLException {
+    	
+    	System.out.print("Enter first name (-1 to keep old value): ");
+    	String firstName = s.nextLine();
+    	if (firstName.equals("-1")) {
+    		firstName = p.getFirstName();
+    	}
+    	
+    	System.out.print("Enter last name (-1 to keep old value): ");
+    	String lastName = s.nextLine();
+    	if (lastName.equals("-1")) {
+    		lastName = p.getLastName();
+    	}
+    	
+    	System.out.print("Enter passport no (-1 to keep old value): ");
+    	String passportNo = s.nextLine();
+    	if (passportNo.equals("-1")) {
+    		passportNo = p.getPassportNo();
+    	}
+    	
+    	System.out.print("Enter phone (-1 to keep old value): ");
+    	String phone = s.nextLine();
+    	if (phone.equals("-1")) {
+    		phone = p.getPhone();
+    	}
+    	
+    	p.setFirstName(firstName);
+    	p.setLastName(lastName);
+    	p.setPassportNo(passportNo);
+    	p.setPhone(phone);
+    	
+    	PassengerService.editPassenger(p, conn);
+    	
+    	System.out.println("\nYour profile edited successfully\n");
     }
 
     private static void displayPassengerDetails(ResultSet rs, Connection conn) throws SQLException {

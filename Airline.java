@@ -87,4 +87,51 @@ public class Airline {
 		}
 	}
 
+	private static ArrayList<Flight> getFlightsByRoute(String origin, String destination, Connection conn) throws SQLException {
+		ArrayList<Flight> flights = new ArrayList<>();
+		
+		String query = "SELECT * FROM flights WHERE origin = ? AND destination = ? AND status = 'On Time' ORDER BY departure_time";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, origin);
+			ps.setString(2, destination);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String flightId = rs.getString("flight_id");
+				String flightNo = rs.getString("flight_no");
+				LocalDateTime departureTime = rs.getTimestamp("departure_time").toLocalDateTime();
+				LocalDateTime arivalTime = rs.getTimestamp("arrival_time").toLocalDateTime();
+				int seatAvailable = rs.getInt("seat_available");
+				String status = rs.getString("status");
+				String aircraftId = rs.getString("aircraft_id");
+				
+				Aircraft plane = AircraftService.getAircraftById(aircraftId, conn);
+				
+				Flight f = new Flight(flightId, flightNo, plane, origin, destination, seatAvailable, status);
+				f.setDepartureTime(departureTime);
+				f.setArrivalTime(arivalTime);
+				
+				flights.add(f);
+			}
+		}
+		
+		return flights;
+	}
+	
+	public static void findFlightsByRoute(String origin, String destination, Connection conn) throws SQLException {
+		ArrayList<Flight> flights = getFlightsByRoute(origin, destination, conn);
+		
+		if (!flights.isEmpty()) {
+			for (Flight f : flights) {
+				System.out.println();
+				f.print();
+				System.out.println();
+			}
+		} else {
+			System.out.println("\nThere are no flights from " + origin + " to " + destination + "\n");
+		}
+		
+	}
 }

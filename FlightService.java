@@ -47,7 +47,7 @@ public class FlightService {
 	}
 	
 	public static void editFlight(Flight f, Connection conn) throws SQLException {
-		String query = "UPDATE flights SET flight_no = ?, origin = ?, destination = ?, departure_time = ?, arrival_time = ?";
+		String query = "UPDATE flights SET flight_no = ?, origin = ?, destination = ?, departure_time = ?, arrival_time = ? WHERE flight_id = ?";
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ps.setString(1, f.getFlightNo());
@@ -55,6 +55,7 @@ public class FlightService {
 			ps.setString(3, f.getDestination());
 			ps.setTimestamp(4, Timestamp.valueOf(f.getDepartureTime()));
 			ps.setTimestamp(5, Timestamp.valueOf(f.getArrivalTime()));
+			ps.setString(6, f.getFlightId());
 			
 			ps.executeUpdate();
 		}
@@ -99,6 +100,7 @@ public class FlightService {
 				System.out.println("\nFlight Id " + flightId + " is not found\n");
 			}
 		}
+		
 		return f;
 	}
 	

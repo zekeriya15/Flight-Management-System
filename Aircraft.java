@@ -6,12 +6,7 @@ public class Aircraft {
 	String aircraftId;
 	String model;
 	int capacity;
-	
-//	public Aircraft(String model, int capacity, Connection conn) throws SQLException {
-//		this.aircraftId = CODE + generateId(conn);
-//		this.model = model;
-//		this.capacity = capacity;
-//	}
+
 	
 	public Aircraft(String aircraftId, String model, int capacity) {
 		this.aircraftId = aircraftId;
@@ -19,24 +14,6 @@ public class Aircraft {
 		this.capacity = capacity;
 	}
 	
-//	private static int generateId(Connection conn) throws SQLException {
-//		int id = 0;
-//		
-//		String query = "SELECT aircraft_id FROM aircrafts ORDER BY aircraft_id DESC LIMIT 1";
-//		PreparedStatement ps = conn.prepareStatement(query);
-//		
-//		ResultSet rs = ps.executeQuery();
-//		
-//		if (rs.next()) {
-//			String lastAircraftId = rs.getString("aircraft_id");
-//			String numValue = lastAircraftId.substring(CODE.length());
-//			int numValueParsed = Integer.parseInt(numValue);
-//			
-//			id = ++numValueParsed;
-//		}
-//		
-//		return id;
-//	}
 	
 	
 	// getters

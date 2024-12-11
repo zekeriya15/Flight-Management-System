@@ -17,26 +17,26 @@ public class Passenger {
 	private ArrayList<Booking> bookings;
 	private ArrayList<Luggage> luggages;
 	
-	public Passenger(User user, String firstName, String lastName, String passportNo, String phone, Connection conn) throws SQLException {
-		this.passengerId = CODE + generateId(conn);
-		this.user = user;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.passportNo = passportNo;
-		this.phone = phone;
-		this.bookings = new ArrayList<>();
-		this.luggages = new ArrayList<>();
-	}
+//	public Passenger(User user, String firstName, String lastName, String passportNo, String phone, Connection conn) throws SQLException {
+//		this.passengerId = CODE + generateId(conn);
+//		this.user = user;
+//		this.firstName = firstName;
+//		this.lastName = lastName;
+//		this.passportNo = passportNo;
+//		this.phone = phone;
+//		this.bookings = new ArrayList<>();
+//		this.luggages = new ArrayList<>();
+//	}
 	
-	public Passenger(String passengerId, User user, String firstName, String lastName, String passportNo, String phone, ArrayList<Booking> bookings, ArrayList<Luggage> luggages) {
+	public Passenger(String passengerId, User user, String firstName, String lastName, String passportNo, String phone) {
 		this.passengerId = passengerId;
 		this.user = user;
 		this.firstName = firstName;;
 		this.lastName = lastName;
 		this.passportNo = passportNo;
 		this.phone = phone;
-		this.bookings = bookings;
-		this.luggages = luggages;
+		this.bookings = new ArrayList<>();
+		this.luggages = new ArrayList<>();
 	}
 	
 	private static int generateId(Connection conn) throws SQLException {
@@ -60,6 +60,10 @@ public class Passenger {
 	
 	
 	// getters
+	public static String getCode() {
+		return CODE;
+	}
+	
 	public String getPassengerId() {
 		return passengerId;
 	}
