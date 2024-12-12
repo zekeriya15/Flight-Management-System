@@ -38,10 +38,14 @@ public class Airline {
 	public static void printAllAircrafts(Connection conn) throws SQLException {
 		ArrayList<Aircraft> aircrafts = getAircrafts(conn);
 		
-		for (Aircraft af : aircrafts) {
-			System.out.println();
-			af.print();
-			System.out.println();
+		if (!aircrafts.isEmpty()) {
+			for (Aircraft af : aircrafts) {
+				System.out.println();
+				af.print();
+				System.out.println();
+			}
+		} else {
+			System.out.println("\nThere are no aircrafts\n");
 		}
 	}
 	
@@ -80,10 +84,14 @@ public class Airline {
 	public static void printAllFlights(Connection conn) throws SQLException {
 		ArrayList<Flight> flights = getFlights(conn);
 		
-		for (Flight f : flights) {
-			System.out.println();
-			f.print();
-			System.out.println();
+		if (!flights.isEmpty()) {
+			for (Flight f : flights) {
+				System.out.println();
+				f.print();
+				System.out.println();
+			}
+		} else {
+			System.out.println("\nThere are no any flights available\n");
 		}
 	}
 

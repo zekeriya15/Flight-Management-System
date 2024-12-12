@@ -165,4 +165,17 @@ public class FlightService {
 					f.getDepartureTime().format(formatter) + " is canceled");
 		}
 	}
+	
+	public static void updateSeatAvailable(Flight f, Connection conn) throws SQLException {
+		int seatAvailable = f.getSeatAvailable() - 1;
+		
+		String query = "UPDATE flights SET seat_available = ? WHERE flight_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setInt(1, seatAvailable);
+			ps.setString(2, f.getFlightId());
+			
+			ps.executeUpdate();
+		}
+	}
 }

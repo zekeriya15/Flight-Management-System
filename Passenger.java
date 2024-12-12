@@ -39,24 +39,24 @@ public class Passenger {
 		this.luggages = new ArrayList<>();
 	}
 	
-	private static int generateId(Connection conn) throws SQLException {
-		int id = 0;
-		
-		String query = "SELECT passenger_id FROM passengers ORDER BY passenger_id DESC LIMIT 1";
-		PreparedStatement ps = conn.prepareStatement(query);
-		
-		ResultSet rs = ps.executeQuery();
-		
-		if (rs.next()) {
-			String lastPassengerId = rs.getString("passenger_id");
-			String numValue = lastPassengerId.substring(CODE.length());
-			int numValueParsed = Integer.parseInt(numValue);
-			
-			id = ++numValueParsed;
-		}
-		
-		return id;
-	}
+//	private static int generateId(Connection conn) throws SQLException {
+//		int id = 0;
+//		
+//		String query = "SELECT passenger_id FROM passengers ORDER BY passenger_id DESC LIMIT 1";
+//		PreparedStatement ps = conn.prepareStatement(query);
+//		
+//		ResultSet rs = ps.executeQuery();
+//		
+//		if (rs.next()) {
+//			String lastPassengerId = rs.getString("passenger_id");
+//			String numValue = lastPassengerId.substring(CODE.length());
+//			int numValueParsed = Integer.parseInt(numValue);
+//			
+//			id = ++numValueParsed;
+//		}
+//		
+//		return id;
+//	}
 	
 	
 	// getters
@@ -124,6 +124,10 @@ public class Passenger {
 	
 	public void setLuggages(ArrayList<Luggage> luggages) {
 		this.luggages = luggages;
+	}
+	
+	public void setBookings(ArrayList<Booking> bookings) {
+		this.bookings = bookings;
 	}
 	
 	

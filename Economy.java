@@ -10,12 +10,12 @@ public class Economy extends Booking {
 	private final double MAX_WEIGHT = 30;
 	
 	
-	public Economy(Connection conn) throws SQLException {
-		super(conn);
+	public Economy(String bookingId) {
+		super(bookingId);
 	}
 	
-	public Economy(String bookingId, boolean isCheckedIn, ArrayList<Luggage> luggages, int numOfLuggage) {
-		super(bookingId, isCheckedIn, luggages, numOfLuggage);
+	public Economy(String bookingId, boolean isCheckedIn, int numOfLuggage) {
+		super(bookingId, isCheckedIn, numOfLuggage);
 	}
 	
 	

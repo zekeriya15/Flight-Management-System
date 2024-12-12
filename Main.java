@@ -127,13 +127,14 @@ public class Main {
             System.out.println("1. Create Aircraft");
             System.out.println("2. Edit Aircraft");
             System.out.println("3. Create Flight");
-            System.out.println("4. Delay Flight");
-            System.out.println("5. Cancel Flight");
-            System.out.println("6. Edit Flight");
-            System.out.println("7. Delete Aircraft");
-            System.out.println("8. Delete Flight");
-            System.out.println("9. Find Flights by Route");
-            System.out.println("10. Show All Aircrafts");
+            System.out.println("4. Create New Flight Schedule");
+            System.out.println("5. Delay Flight");
+            System.out.println("6. Cancel Flight");
+            System.out.println("7. Edit Flight");
+            System.out.println("8. Delete Aircraft");
+            System.out.println("9. Delete Flight");
+            System.out.println("10. Find Flights by Route");
+            System.out.println("11. Show All Aircrafts");
             System.out.println("20. Show All Flights");
             System.out.println("0. Logout");
             System.out.print("\nChoose an option: ");
@@ -153,26 +154,29 @@ public class Main {
                 	createFlight(conn);
                 	break;
                 case 4:
-                	delayFlight(conn);
+                	createNewSchedule(conn);
                 	break;
                 case 5:
-                	cancelFlight(conn);
+                	delayFlight(conn);
                 	break;
                 case 6:
-                	editFlight(conn);
+                	cancelFlight(conn);
                 	break;
                 case 7:
-                	deleteAircraft(conn);
+                	editFlight(conn);
                 	break;
                 case 8:
-                	deleteFlight(conn);
+                	deleteAircraft(conn);
                 	break;
                 case 9:
-                	findFlightByRoute(conn);
+                	deleteFlight(conn);
+                	break;
+                case 10:
+                	findFlightsByRoute(conn);
                 	break;
                 	
                 	
-                case 10:
+                case 11:
                 	Airline.printAllAircrafts(conn);
                 	break;
                 case 20:
@@ -282,7 +286,7 @@ public class Main {
     	System.out.println("\nFlight created successfully\n");
     }
     
-    private static void delayFlight(Connection conn) throws SQLException {
+    private static void createNewSchedule(Connection conn) throws SQLException {
     	
     	System.out.print("Enter Flight No (-1 to show all flights): ");
     	String flightNo = s.nextLine();
@@ -295,23 +299,59 @@ public class Main {
     	}
     	
     	Flight f = FlightService.getFlightByNo(flightNo, conn);
+    	
+    	System.out.print("Enter departure time (yyyy-MM-dd HH:mm): ");
+    	String departureTime = s.nextLine();
+    	
+    	System.out.print("Enter arrival time (yyyy-MM-dd HH:mm): ");
+    	String arrivalTime = s.nextLine();
+    	
+    	String flightId = FlightService.generateId(conn);
+    	
+    	flightNo = f.getFlightNo();
+    	Aircraft plane = f.getAircraft();
+    	String origin = f.getOrigin();
+    	String destination = f.getDestination();
+    	
+    	Flight newSchedule = new Flight(flightId, flightNo, plane, origin, destination);
+    	newSchedule.setDepartureTime(departureTime);
+    	newSchedule.setArrivalTime(arrivalTime);
+    	
+    	FlightService.saveFlight(newSchedule, conn);
+    	
+    	System.out.println("\nNew scheduled added for flight " + flightNo.toUpperCase() + "\n");
+    }
+    
+    private static void delayFlight(Connection conn) throws SQLException {
+    	
+    	System.out.print("Enter Flight Id (-1 to show all flights): ");
+    	String flightId = s.nextLine();
+    	
+    	if (flightId.equals("-1")) {
+    		Airline.printAllFlights(conn);
+    		
+    		System.out.print("Enter Flight Id: ");
+    		flightId = s.nextLine();
+    	}
+    	
+    	Flight f = FlightService.getFlightById(flightId, conn);
     	
     	FlightService.delayFlight(f, conn);
     }
     
     private static void cancelFlight(Connection conn) throws SQLException {
     	
-    	System.out.print("Enter Flight No (-1 to show all flights): ");
-    	String flightNo = s.nextLine();
+    	System.out.print("Enter Flight Id (-1 to show all flights): ");
+    	String flightId = s.nextLine();
     	
-    	if (flightNo.equals("-1")) {
+    	if (flightId.equals("-1")) {
     		Airline.printAllFlights(conn);
     		
-    		System.out.print("Enter Flight No: ");
-    		flightNo = s.nextLine();
+    		System.out.print("Enter Flight Id: ");
+    		flightId = s.nextLine();
     	}
     	
-    	Flight f = FlightService.getFlightByNo(flightNo, conn);
+    	Flight f = FlightService.getFlightById(flightId, conn);
     	
     	FlightService.cancelFlight(f, conn);
     }
@@ -424,7 +464,7 @@ public class Main {
     }
     
     
-    private static void findFlightByRoute(Connection conn) throws SQLException {
+    private static void findFlightsByRoute(Connection conn) throws SQLException {
     	
     	System.out.print("Enter origin: ");
     	String origin = s.nextLine();
@@ -443,6 +483,9 @@ public class Main {
         	System.out.print(p.getFirstName() + "\t" + p.getLastName() + "\t" + p.getPassportNo() + "\t" + p.getPhone());
         	System.out.println("\n------------------------------------\n");
         	
+        	System.out.println("1. Show All Flights");
+        	System.out.println("2. Find Flights by Route");
+        	System.out.println("3. Book a Flight");
         	System.out.println("10. Edit profile");
         	System.out.println("0. Logout");
         	
@@ -454,6 +497,18 @@ public class Main {
         	System.out.println();
         	
         	switch (option) {
+        		case 1:
+        			Airline.printAllFlights(conn);
+        			break;
+        		case 2:
+        			findFlightsByRoute(conn);
+        			break;
+        		case 3:
+        			bookFlight(p, conn);
+        			break;
+        			
+        			
+        			
         		case 10:
         			editProfile(p, conn);
         			break;
@@ -466,6 +521,57 @@ public class Main {
         	}
     	}
     	
+    }
+    
+    
+    private static void bookFlight(Passenger p, Connection conn) throws SQLException {
+    	
+    	System.out.print("Enter Flight Id (-1 to show all flights): ");
+    	String flightId = s.nextLine();
+    	
+    	if (flightId.equals("-1")) {
+    		Airline.printAllFlights(conn);
+    		
+    		System.out.print("Enter Flight Id: ");
+    		flightId = s.nextLine();
+    	}
+    	
+    	Flight f = FlightService.getFlightById(flightId, conn);
+    	
+    	String bookingClass = null;
+    	
+    	if (f.getSeatAvailable() > 0) {
+    		do {
+        		System.out.print("\nChoose class\n1. First Class\n2. Business Class\n3. Economy Class\nOption: ");
+        		int option = s.nextInt(); s.nextLine();
+        		
+        		switch (option) {
+        			case 1:
+        				bookingClass = "First";
+        				break;
+        			case 2:
+        				bookingClass = "Business";
+        				break;
+        			case 3:
+        				bookingClass = "Economy";
+        				break;
+        			default:
+        				System.out.println("\nInvalid option\n");
+        				break;
+        		}
+        		
+        	} while (bookingClass == null);
+    		
+    		PassengerService.addBooking(p, f, bookingClass, conn);
+    		
+    		System.out.println("\nYou have successfully booked flight from " + f.getOrigin() + " to " + f.getDestination() + 
+    				" with " + bookingClass + " class scheduled to fly at " + f.getStrDepartureTime());
+    		
+    		return;
+    		
+    	}
+    		
+    	System.out.println("\nThe flight has no seat left avilable\n");
     }
     
     private static void editProfile(Passenger p, Connection conn) throws SQLException {

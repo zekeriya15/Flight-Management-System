@@ -10,12 +10,12 @@ public class Business extends Booking {
 	private final double MAX_WEIGHT = 45;
 	
 	
-	public Business(Passenger p, String f, Connection conn) throws SQLException {
-		super(p, f, conn);
+	public Business(Connection conn) throws SQLException {
+		super(conn);
 	}
 	
-	public Business(String bookingId, Passenger p, String f, boolean isCheckedIn, ArrayList<Luggage> luggages, int numOfLuggage) {
-		super(bookingId, p, f, isCheckedIn, luggages, numOfLuggage);
+	public Business(String bookingId, boolean isCheckedIn, ArrayList<Luggage> luggages, int numOfLuggage) {
+		super(bookingId, isCheckedIn, luggages, numOfLuggage);
 	}
 	
 	

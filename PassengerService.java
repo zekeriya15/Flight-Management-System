@@ -59,6 +59,35 @@ public class PassengerService {
 		}
 	}
 	
-	
+	public static void addBooking(Passenger p, Flight f, String bookingClass, Connection conn) throws SQLException {
+		Booking b = null;
+		String bookingId = BookingService.generateId(p.getPassengerId(), conn);
+		
+		switch (bookingClass) {
+			case "Economy":
+				b = new Economy(bookingId);
+				break;
+		}
+		
+		int isCheckedIn = 0;
+		if (b.isCheckedIn) {
+			isCheckedIn = 1;
+		}
+		
+		String query = "INSERT INTO bookings VALUES (?, ?, ?, ?, ?, ?)";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, b.getBookingId());
+			ps.setString(2, bookingClass);
+			ps.setInt(3, isCheckedIn);
+			ps.setInt(4, b.getNumOfLuggage());
+			ps.setString(5, f.getFlightId());
+			ps.setString(6, p.getPassengerId());
+			
+			ps.executeUpdate();
+		}
+		
+		FlightService.updateSeatAvailable(f, conn);
+	}
 	
 }

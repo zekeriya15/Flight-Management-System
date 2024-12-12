@@ -12,42 +12,47 @@ public abstract class Booking {
 	protected ArrayList<Luggage> luggages;
 	protected int numOfLuggage;
 	
-	public Booking(Connection conn) throws SQLException {
-//		this.bookingId = generateId(conn);
+	public Booking(String bookingId) {
+		this.bookingId = bookingId;
 		this.isCheckedIn = false;
 		this.luggages = new ArrayList<>();
+//		this.numOfLuggage = 0;
 	}
 	
-	public Booking(String bookingId, boolean isCheckedIn, ArrayList<Luggage> luggages, int numOfLuggage) {
+	public Booking(String bookingId, boolean isCheckedIn, int numOfLuggage) {
 		this.bookingId = bookingId;
 		this.isCheckedIn = isCheckedIn;
-		this.luggages = luggages;
+		this.luggages = new ArrayList<>();
 		this.numOfLuggage = numOfLuggage;
 	}
 	
-	private static String generateId(Passenger p, Connection conn) throws SQLException {
-		int id = 0;
-		
-		String query = "SELECT booking_id FROM bookings WHERE passenger_id = ? ORDER BY booking_id DESC LIMIT 1";
-		PreparedStatement ps = conn.prepareStatement(query);
-		
-		ps.setString(1, p.getPassengerId());
-		
-		ResultSet rs = ps.executeQuery();
-		
-		if (rs.next()) {
-			String lastBookingId = rs.getString("booking_id");
-			String numValue = lastBookingId.substring(lastBookingId.lastIndexOf(CODE) + CODE.length());
-			int numValueParsed = Integer.parseInt(numValue);
-			
-			id = ++numValueParsed;
-		}
-		
-		return p.getPassengerId() + CODE + id;
-	}
+//	private static String generateId(Passenger p, Connection conn) throws SQLException {
+//		int id = 0;
+//		
+//		String query = "SELECT booking_id FROM bookings WHERE passenger_id = ? ORDER BY booking_id DESC LIMIT 1";
+//		PreparedStatement ps = conn.prepareStatement(query);
+//		
+//		ps.setString(1, p.getPassengerId());
+//		
+//		ResultSet rs = ps.executeQuery();
+//		
+//		if (rs.next()) {
+//			String lastBookingId = rs.getString("booking_id");
+//			String numValue = lastBookingId.substring(lastBookingId.lastIndexOf(CODE) + CODE.length());
+//			int numValueParsed = Integer.parseInt(numValue);
+//			
+//			id = ++numValueParsed;
+//		}
+//		
+//		return p.getPassengerId() + CODE + id;
+//	}
 	
 	
 	// getters
+	public static String getCode() {
+		return CODE;
+	}
+	
 	public String getBookingId() {
 		return bookingId;
 	}
@@ -76,6 +81,10 @@ public abstract class Booking {
 	
 	public void setLuggages(ArrayList<Luggage> luggages) {
 		this.luggages = luggages;
+	}
+	
+	public void setNumOfLuggage(int num) {
+		this.numOfLuggage = num;
 	}
 	
 //	public  void saveBooking(Connection conn) throws SQLException {
