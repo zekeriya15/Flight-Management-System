@@ -26,26 +26,6 @@ public abstract class Booking {
 		this.numOfLuggage = numOfLuggage;
 	}
 	
-//	private static String generateId(Passenger p, Connection conn) throws SQLException {
-//		int id = 0;
-//		
-//		String query = "SELECT booking_id FROM bookings WHERE passenger_id = ? ORDER BY booking_id DESC LIMIT 1";
-//		PreparedStatement ps = conn.prepareStatement(query);
-//		
-//		ps.setString(1, p.getPassengerId());
-//		
-//		ResultSet rs = ps.executeQuery();
-//		
-//		if (rs.next()) {
-//			String lastBookingId = rs.getString("booking_id");
-//			String numValue = lastBookingId.substring(lastBookingId.lastIndexOf(CODE) + CODE.length());
-//			int numValueParsed = Integer.parseInt(numValue);
-//			
-//			id = ++numValueParsed;
-//		}
-//		
-//		return p.getPassengerId() + CODE + id;
-//	}
 	
 	
 	// getters
@@ -87,32 +67,9 @@ public abstract class Booking {
 		this.numOfLuggage = num;
 	}
 	
-//	public  void saveBooking(Connection conn) throws SQLException {
-//		String bookingClass = "";
-//		int checkedIn = 0;
-//		
-//		if (this instanceof Economy) {
-//			bookingClass = "Economy";
-//		} else if (this instanceof Business) {
-//			bookingClass = "Business";
-//		} else if (this instanceof First) {
-//			bookingClass = "First";
-//		}
-//		
-//		if (this.isCheckedIn == true) {
-//			checkedIn = 1;
-//		}
-//		
-//		
-//		String query = "INSERT INTO bookings VALUES (?, ?, ?, ?, ?, ?)";
-//		PreparedStatement ps = conn.prepareStatement(query);
-//		
-//		ps.setString(1, bookingId);
-//		ps.setString(2, bookingClass);
-//		ps.setInt(3, checkedIn);
-//		ps.setInt(4, numOfLuggage);
-//		ps.setString(5, flightId);
-//		ps.setString(6, passenger.getPassengerId());
-//	}
+	
+	public abstract void addLuggage(Passenger p, Luggage l);
+	
+
 	
 }

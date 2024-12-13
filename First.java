@@ -10,12 +10,12 @@ public class First extends Booking {
 	private final double MAX_WEIGHT = 55;
 	
 	
-	public First(Passenger p, String f, Connection conn) throws SQLException {
-		super(p, f, conn);
+	public First(String bookingId) {
+		super(bookingId);
 	}
 	
-	public First(String bookingId, Passenger p, String f, boolean isCheckedIn, ArrayList<Luggage> luggages, int numOfLuggage) {
-		super(bookingId, p, f, isCheckedIn, luggages, numOfLuggage);
+	public First(String bookingId, boolean isCheckedIn, int numOfLuggage) {
+		super(bookingId, isCheckedIn, numOfLuggage);
 	}
 	
 	

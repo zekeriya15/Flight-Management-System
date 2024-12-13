@@ -18,7 +18,27 @@ public class Economy extends Booking {
 		super(bookingId, isCheckedIn, numOfLuggage);
 	}
 	
-	
+	@Override
+	public void addLuggage(Passenger p, Luggage l) {
+		double currentWeight = 0;
+		if (!this.luggages.isEmpty()) {
+			for (Luggage lu : this.luggages) {
+				currentWeight += lu.getWeight();
+			}
+		}
+		
+		double totalWeight = currentWeight + l.getWeight();
+		
+		if (numOfLuggage < MAX_LUGGAGE && totalWeight <= MAX_WEIGHT) {
+			this.luggages.add(l);
+			p.getLuggages().add(l);
+			this.numOfLuggage++;
+			
+			System.out.println("\nLuggage added successfully\n");
+		} else {
+			System.out.println("\nMaximum of allowed luggages in Economy Class is 2 and maximum weight is 30 kg\n");
+		}
+	}
 	
 	
 }

@@ -16,17 +16,7 @@ public class Passenger {
 	private String phone;
 	private ArrayList<Booking> bookings;
 	private ArrayList<Luggage> luggages;
-	
-//	public Passenger(User user, String firstName, String lastName, String passportNo, String phone, Connection conn) throws SQLException {
-//		this.passengerId = CODE + generateId(conn);
-//		this.user = user;
-//		this.firstName = firstName;
-//		this.lastName = lastName;
-//		this.passportNo = passportNo;
-//		this.phone = phone;
-//		this.bookings = new ArrayList<>();
-//		this.luggages = new ArrayList<>();
-//	}
+
 	
 	public Passenger(String passengerId, User user, String firstName, String lastName, String passportNo, String phone) {
 		this.passengerId = passengerId;
@@ -38,25 +28,6 @@ public class Passenger {
 		this.bookings = new ArrayList<>();
 		this.luggages = new ArrayList<>();
 	}
-	
-//	private static int generateId(Connection conn) throws SQLException {
-//		int id = 0;
-//		
-//		String query = "SELECT passenger_id FROM passengers ORDER BY passenger_id DESC LIMIT 1";
-//		PreparedStatement ps = conn.prepareStatement(query);
-//		
-//		ResultSet rs = ps.executeQuery();
-//		
-//		if (rs.next()) {
-//			String lastPassengerId = rs.getString("passenger_id");
-//			String numValue = lastPassengerId.substring(CODE.length());
-//			int numValueParsed = Integer.parseInt(numValue);
-//			
-//			id = ++numValueParsed;
-//		}
-//		
-//		return id;
-//	}
 	
 	
 	// getters
@@ -129,6 +100,7 @@ public class Passenger {
 	public void setBookings(ArrayList<Booking> bookings) {
 		this.bookings = bookings;
 	}
+	
 	
 	
 	

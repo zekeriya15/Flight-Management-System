@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 
 public class PassengerService {
@@ -67,6 +68,12 @@ public class PassengerService {
 			case "Economy":
 				b = new Economy(bookingId);
 				break;
+			case "Business":
+				b = new Business(bookingId);
+				break;
+			case "First":
+				b = new First(bookingId);
+				break;
 		}
 		
 		int isCheckedIn = 0;
@@ -88,6 +95,124 @@ public class PassengerService {
 		}
 		
 		FlightService.updateSeatAvailable(f, conn);
+	}
+	
+	public static ArrayList<Booking> getBookings(Passenger p, Connection conn) throws SQLException {
+		ArrayList<Booking> bookings = new ArrayList<>();
+		
+		String query = "SELECT * FROM bookings WHERE passenger_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, p.getPassengerId());
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				Booking b = null;
+				
+				String bookingId = rs.getString("booking_id");
+				String bookingClass = rs.getString("booking_class");
+				boolean isCheckedIn = rs.getInt("is_checked_in") == 1;
+				int numOfLuggage = rs.getInt("num_of_luggage");
+				
+				ArrayList<Luggage> luggages = BookingService.getLuggagesByBookingId(bookingId, conn);
+				
+				switch (bookingClass) {
+					case "Economy":
+						b = new Economy(bookingId, isCheckedIn, numOfLuggage);
+//						b.setLuggages(luggages);
+						break;
+					case "Business":
+						b = new Business(bookingId, isCheckedIn, numOfLuggage);
+//						b.setLuggages(luggages);
+						break;
+					case "First":
+						b = new Business(bookingId, isCheckedIn, numOfLuggage);
+//						b.setLuggages(luggages);
+						break;
+				}
+				
+				b.setLuggages(luggages);
+				bookings.add(b);
+			}
+			
+		}
+		
+		return bookings;
+	}
+	
+	public static void printBooking(Passenger p, Connection conn) throws SQLException {
+		String query = "SELECT * FROM bookings b JOIN flights f ON b.flight_id = f.flight_id WHERE passenger_id = ?";
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, p.getPassengerId());
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String bookingId = rs.getString("booking_id");
+				String flightNo = rs.getString("flight_no");
+				String status = rs.getString("status");
+				String origin = rs.getString("origin");
+				String destination = rs.getString("destination");
+				LocalDateTime departureTime = rs.getTimestamp("departure_time").toLocalDateTime();
+				LocalDateTime arrivalTime = rs.getTimestamp("arrival_time").toLocalDateTime();
+				boolean isCheckedIn = rs.getInt("is_checked_in") == 1;
+				String bookingClass = rs.getString("booking_class");
+				int numOfLuggage = rs.getInt("num_of_luggage");
+				
+				
+				System.out.println();
+				System.out.println("Booking id: " + bookingId);
+				System.out.println("Flight no: " + flightNo);
+				System.out.println("status: " + status);
+				System.out.println("Route: " + origin + " " + destination);
+				System.out.println("Schedule: " + departureTime.format(formatter) + " - " + arrivalTime.format(formatter));
+				System.out.println("Check in? " + isCheckedIn);
+				System.out.println("Class: " + bookingClass);
+				System.out.println("num of luggage: " + numOfLuggage);
+				System.out.println();
+				
+			}
+			
+		}
+	}
+	
+	
+	public static void checkIn(Booking b, Passenger p, Connection conn) throws SQLException {
+		String query = "UPDATE bookings SET is_checked_in = ?, num_of_luggage = ? WHERE booking_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setInt(1, 1);
+			ps.setInt(2, b.getNumOfLuggage());
+			ps.setString(3, b.getBookingId());
+			
+			ps.executeUpdate();
+		}
+		
+		if (!b.getLuggages().isEmpty()) {
+			addLuggage(b.getLuggages(), p.getPassengerId(), b.getBookingId(), conn);
+		}
+	}
+	
+	public static void addLuggage(ArrayList<Luggage> luggages, String passengerId, String bookingId, Connection conn) throws SQLException {
+		
+		for (Luggage l : luggages) {
+			
+			String query = "INSERT INTO luggages VALUES (?, ?, ?, ?, ?)";
+			
+			try (PreparedStatement ps = conn.prepareStatement(query)) {
+				ps.setString(1, l.getLuggageId());
+				ps.setString(2, l.getType());
+				ps.setDouble(3, l.getWeight());
+				ps.setString(4, passengerId);
+				ps.setString(5, bookingId);
+				
+				ps.executeUpdate();
+			}
+		}
 	}
 	
 }

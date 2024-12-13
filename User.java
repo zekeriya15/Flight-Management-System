@@ -11,11 +11,6 @@ public class User {
 	private String username;
 	private String password;
 	
-//	public User(String username, String password, Connection conn) throws SQLException {
-//		this.userId = CODE + generateId(conn);
-//		this.username = username;
-//		this.password = password;
-//	}
 	
 	public User(String userId, String username, String password) {
 		this.userId = userId;

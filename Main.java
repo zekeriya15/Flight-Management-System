@@ -486,6 +486,8 @@ public class Main {
         	System.out.println("1. Show All Flights");
         	System.out.println("2. Find Flights by Route");
         	System.out.println("3. Book a Flight");
+        	System.out.println("4. Check-In");
+        	System.out.println("9. Show Your Bookings");
         	System.out.println("10. Edit profile");
         	System.out.println("0. Logout");
         	
@@ -506,9 +508,13 @@ public class Main {
         		case 3:
         			bookFlight(p, conn);
         			break;
+        		case 4:
+        			checkIn(p, conn);
+        			break;
         			
-        			
-        			
+        		case 9:
+        			PassengerService.printBooking(p, conn);
+        			break;
         		case 10:
         			editProfile(p, conn);
         			break;
@@ -573,6 +579,60 @@ public class Main {
     		
     	System.out.println("\nThe flight has no seat left avilable\n");
     }
+    
+    private static void checkIn(Passenger p, Connection conn) throws SQLException {
+    	
+    	System.out.print("Enter Booking Id (-1 to show all of your bookings): ");
+    	String bookingId = s.nextLine();
+    	
+    	if (bookingId.equals("-1")) {
+    		PassengerService.printBooking(p, conn);
+    		
+    		System.out.print("Enter Booking Id: ");
+    		bookingId = s.nextLine();
+    	}
+    	
+    	Booking b = BookingService.getBookingById(bookingId, conn);
+    	
+    	System.out.print("Do you want to add luggage? (Y/N): ");
+        char option = s.next().toUpperCase().charAt(0);
+        
+        while (option == 'Y') {
+            System.out.print("Enter luggage type (ex. suitcase, carry-on): ");
+            s.nextLine(); // Clear the buffer
+            String type = s.nextLine();
+            
+            double weight = 0;
+            boolean validWeight = false;
+            
+            while (!validWeight) {
+                System.out.print("Enter weight (in kg): ");
+                
+                if (s.hasNextDouble()) {
+                    weight = s.nextDouble();
+                    s.nextLine(); // Clear the buffer
+                    if (weight > 0) {
+                        validWeight = true;
+                    } else {
+                        System.out.println("Weight must be a positive value.");
+                    }
+                } else {
+                    System.out.println("Invalid weight input. Please enter a numeric value.");
+                    s.nextLine(); // Clear the invalid input
+                }
+            }
+            
+            b.addLuggage(p, new Luggage(type, weight, p));
+            
+            System.out.print("Continue adding luggage? (Y/N): ");
+            option = s.next().toUpperCase().charAt(0); // Normalize input to uppercase
+        }
+        
+        PassengerService.checkIn(b, p, conn);
+        System.out.println("\nYou have checked in successfully.\n");
+    	
+    }
+    
     
     private static void editProfile(Passenger p, Connection conn) throws SQLException {
     	

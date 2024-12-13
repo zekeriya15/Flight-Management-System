@@ -10,31 +10,26 @@ public class Luggage {
 	private String type;
 	private double weight;
 	
-	public Luggage(String type, double weight, Passenger p, Connection conn) throws SQLException {
-		this.luggageId = generateId(p, conn);
-		this.type = type;
-		this.weight = weight;
-	}
-	
 	public Luggage(String luggageId, String type, double weight) {
 		this.luggageId = luggageId;
 		this.type = type;
 		this.weight = weight;
 	}
 	
-	private static String generateId(Passenger p, Connection conn) throws SQLException {
+	public Luggage(String type, double weight, Passenger p) {
+		this.luggageId = generateId(p);
+		this.type = type;
+		this.weight = weight;
+	}
+	
+	private static String generateId(Passenger p) {
 		int id = 0;
 		
-		String query = "SELECT luggage_id FROM luggages WHERE passenger_id = ? ORDER BY luggage_id DESC LIMIT 1";
-		PreparedStatement ps = conn.prepareStatement(query);
-		
-		ps.setString(1, p.getPassengerId());
-		
-		ResultSet rs = ps.executeQuery();
-		
-		if (rs.next()) {
-			String lastLuggageId = rs.getString("luggage_id");
-			String numValue = lastLuggageId.substring(lastLuggageId.lastIndexOf(CODE) + CODE.length());
+		if (p.getLuggages().size() != 0) {
+			Luggage lastIndexValue = p.getLuggages().get(p.getLuggages().size() - 1);
+			String lastLuggageId = lastIndexValue.getLuggageId();
+			
+			String numValue = lastLuggageId.substring(lastLuggageId.lastIndexOf(CODE) + CODE.length(), lastLuggageId.length());
 			int numValueParsed = Integer.parseInt(numValue);
 			
 			id = ++numValueParsed;
@@ -44,7 +39,12 @@ public class Luggage {
 	}
 	
 	
+	
 	// getters
+	public static String getCode() {
+		return CODE;
+	}
+	
 	public String getLuggageId() {
 		return luggageId;
 	}
