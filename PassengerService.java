@@ -100,7 +100,7 @@ public class PassengerService {
 	public static ArrayList<Booking> getBookings(Passenger p, Connection conn) throws SQLException {
 		ArrayList<Booking> bookings = new ArrayList<>();
 		
-		String query = "SELECT * FROM bookings WHERE passenger_id = ?";
+		String query = "SELECT booking_id FROM bookings WHERE passenger_id = ?";
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ps.setString(1, p.getPassengerId());
@@ -108,34 +108,11 @@ public class PassengerService {
 			ResultSet rs = ps.executeQuery();
 			
 			while (rs.next()) {
-				Booking b = null;
-				
 				String bookingId = rs.getString("booking_id");
-				String bookingClass = rs.getString("booking_class");
-				boolean isCheckedIn = rs.getInt("is_checked_in") == 1;
-				int numOfLuggage = rs.getInt("num_of_luggage");
+				Booking b = BookingService.getBookingById(bookingId, conn);
 				
-				ArrayList<Luggage> luggages = BookingService.getLuggagesByBookingId(bookingId, conn);
-				
-				switch (bookingClass) {
-					case "Economy":
-						b = new Economy(bookingId, isCheckedIn, numOfLuggage);
-//						b.setLuggages(luggages);
-						break;
-					case "Business":
-						b = new Business(bookingId, isCheckedIn, numOfLuggage);
-//						b.setLuggages(luggages);
-						break;
-					case "First":
-						b = new Business(bookingId, isCheckedIn, numOfLuggage);
-//						b.setLuggages(luggages);
-						break;
-				}
-				
-				b.setLuggages(luggages);
 				bookings.add(b);
 			}
-			
 		}
 		
 		return bookings;
@@ -197,10 +174,9 @@ public class PassengerService {
 		}
 	}
 	
-	public static void addLuggage(ArrayList<Luggage> luggages, String passengerId, String bookingId, Connection conn) throws SQLException {
+	private static void addLuggage(ArrayList<Luggage> luggages, String passengerId, String bookingId, Connection conn) throws SQLException {
 		
 		for (Luggage l : luggages) {
-			
 			String query = "INSERT INTO luggages VALUES (?, ?, ?, ?, ?)";
 			
 			try (PreparedStatement ps = conn.prepareStatement(query)) {

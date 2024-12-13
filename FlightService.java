@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 public class FlightService {
 	private static final String FLCODE = Flight.getCode();
@@ -92,10 +93,12 @@ public class FlightService {
 				String aircraftId = rs.getString("aircraft_id");
 				
 				Aircraft plane = AircraftService.getAircraftById(aircraftId, conn);
+				ArrayList<Booking> bookings = getBookingsByFlightId(flightId, conn);
 				
 				f = new Flight(flightId, flightNo, plane, origin, destination, seatAvailable, status);
 				f.setDepartureTime(departureTime);
 				f.setArrivalTime(arrivalTime);
+				f.setBooking(bookings);
 			} else {
 				System.out.println("\nFlight Id " + flightId + " is not found\n");
 			}
@@ -115,7 +118,7 @@ public class FlightService {
 			ResultSet rs = ps.executeQuery();
 			
 			if (rs.next()) {
-				String flightId = rs.getString("flight_Id");
+				String flightId = rs.getString("flight_id");
 				String origin = rs.getString("origin");
 				String destination = rs.getString("destination");
 				LocalDateTime departureTime = rs.getTimestamp("departure_time").toLocalDateTime();
@@ -125,15 +128,61 @@ public class FlightService {
 				String aircraftId = rs.getString("aircraft_id");
 				
 				Aircraft plane = AircraftService.getAircraftById(aircraftId, conn);
+				ArrayList<Booking> bookings = getBookingsByFlightId(flightId, conn);
 				
 				f = new Flight(flightId, flightNo, plane, origin, destination, seatAvailable, status);
 				f.setDepartureTime(departureTime);
 				f.setArrivalTime(arrivalTime);
+				f.setBooking(bookings);
 			} else {
 				System.out.println("\nFlight Id " + flightNo + " is not found\n");
 			}
 		}
 		return f;
+	}
+	
+	public static Flight getFlightByBookingId(String bookingId, Connection conn) throws SQLException {
+		bookingId = bookingId.toUpperCase();
+		Flight f = null;
+		String query = "SELECT b.flight_id FROM bookings b JOIN flights f ON b.flight_id = f.flight_id WHERE booking_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, bookingId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				String flightId = rs.getString("flight_id");
+				
+				f = getFlightById(flightId, conn);
+			}
+		}
+		
+		return f;
+	}
+	
+	public static ArrayList<Booking> getBookingsByFlightId(String flightId, Connection conn) throws SQLException {
+		ArrayList<Booking> bookings = new ArrayList<>();
+		
+		String query = "SELECT booking_id FROM bookings WHERE flight_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, flightId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String bookingId = rs.getString("booking_id");
+				
+				Booking b = BookingService.getBookingById(bookingId, conn);
+				ArrayList<Luggage> luggages = BookingService.getLuggagesByBookingId(bookingId, conn);
+				
+				b.setLuggages(luggages);
+				bookings.add(b);
+			}
+		}
+ 		
+		return bookings;
 	}
 	
 	public static void delayFlight(Flight f, Connection conn) throws SQLException {
@@ -178,4 +227,24 @@ public class FlightService {
 			ps.executeUpdate();
 		}
 	}
+	
+	public static boolean isCanceled(String bookingId, Connection conn) throws SQLException {
+		String query = "SELECT status FROM flights f JOIN bookings b ON f.flight_id = b.flight_id WHERE booking_id = ?";
+		
+		boolean status = false;
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, bookingId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				status = rs.getString("status").equalsIgnoreCase("Canceled");
+			}
+		}
+		
+		return status;
+	}
+	
+	
 }

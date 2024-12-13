@@ -30,5 +30,46 @@ public class LuggageService {
 		return passengerId + LGCODE + id;
 	}
 	
+	public static Luggage getLuggageById(String luggageId, Connection conn) throws SQLException {
+		Luggage l = null;
+		String query = "SELECT * FROM luggages WHERE luggage_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, luggageId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				String type = rs.getString("type");
+				double weight = rs.getDouble("weight");
+				
+				l = new Luggage(luggageId, type, weight);
+			}
+		}
+		
+		return l;
+	}
+	
+	public static ArrayList<Luggage> getLuggagesByPassengerId(String passengerId, Connection conn) throws SQLException {
+		ArrayList<Luggage> luggages = new ArrayList<>();
+		
+		String query = "SELECT luggage_id FROM luggages WHERE passenger_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, passengerId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String luggageId = rs.getString("luggage_id");
+				Luggage l = getLuggageById(luggageId, conn);
+				
+				luggages.add(l);
+			}	
+		}
+		
+		return luggages;
+	}
+	
 	
 }

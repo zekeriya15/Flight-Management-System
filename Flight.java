@@ -197,9 +197,10 @@ public class Flight {
 		System.out.println("Destination: " + destination);
 		System.out.println("Departure time: " + departureTime.format(formatter));
 		System.out.println("Arrival time: " + arrivalTime.format(formatter));
-		System.out.println("Seat available: " + seatAvailable);
+		System.out.println("Seat available: " + seatAvailable + "/" + plane.getCapacity());
 		System.out.println("status: " + status);
 		System.out.println("aircraft: " + plane.getModel());
+		System.out.println("num of booked flight: " + bookings.size());
 				
 	}
 }

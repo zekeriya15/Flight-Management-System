@@ -3,9 +3,9 @@
 public class Aircraft {
 	private static final String CODE = "AF";
 	
-	String aircraftId;
-	String model;
-	int capacity;
+	private String aircraftId;
+	private String model;
+	private int capacity;
 
 	
 	public Aircraft(String aircraftId, String model, int capacity) {

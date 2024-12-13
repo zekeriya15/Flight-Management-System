@@ -39,7 +39,6 @@ public class Luggage {
 	}
 	
 	
-	
 	// getters
 	public static String getCode() {
 		return CODE;
@@ -70,19 +69,5 @@ public class Luggage {
 		this.weight = weight;
 	}
 	
-	
-	public void saveLuggage(Passenger p, Booking b, Connection conn) throws SQLException {
-		
-		String query = "INSERT INTO luggages VALUES (?, ?, ?, ?, ?)";
-		PreparedStatement ps = conn.prepareStatement(query);
-		
-		ps.setString(1, luggageId);
-		ps.setString(2, type);
-		ps.setDouble(3, weight);
-		ps.setString(4, p.getPassengerId());
-		ps.setString(5, b.getBookingId());
-		
-		int rowAffected = ps.executeUpdate();
-	}
 
 }

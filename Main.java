@@ -2,6 +2,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
@@ -105,6 +106,12 @@ public class Main {
             User u = UserService.getUserById(userId, conn);
             
             Passenger p = new Passenger(passengerId, u, firstName, lastName, passportNo, phone);
+            
+            ArrayList<Luggage> luggages = LuggageService.getLuggagesByPassengerId(passengerId, conn);
+            p.setLuggages(luggages);
+            
+            ArrayList<Booking> bookings = PassengerService.getBookings(p, conn);
+            p.setBookings(bookings);
             
             if (role.equalsIgnoreCase("admin")) {
                 adminMenu(conn);
@@ -483,10 +490,12 @@ public class Main {
         	System.out.print(p.getFirstName() + "\t" + p.getLastName() + "\t" + p.getPassportNo() + "\t" + p.getPhone());
         	System.out.println("\n------------------------------------\n");
         	
-        	System.out.println("1. Show All Flights");
+        	System.out.println("1. Show All Available Flights");
         	System.out.println("2. Find Flights by Route");
         	System.out.println("3. Book a Flight");
         	System.out.println("4. Check-In");
+        	System.out.println("5. Show Your Luggages");
+        	System.out.println("6. Cancel Booking");
         	System.out.println("9. Show Your Bookings");
         	System.out.println("10. Edit profile");
         	System.out.println("0. Logout");
@@ -500,7 +509,7 @@ public class Main {
         	
         	switch (option) {
         		case 1:
-        			Airline.printAllFlights(conn);
+        			Airline.printAvailableFlights(conn);
         			break;
         		case 2:
         			findFlightsByRoute(conn);
@@ -511,6 +520,13 @@ public class Main {
         		case 4:
         			checkIn(p, conn);
         			break;
+        		case 5:
+        			showLuggages(p, conn);
+        			break;
+        		case 6:
+        			cancelBooking(p, conn);
+        			break;
+        			
         			
         		case 9:
         			PassengerService.printBooking(p, conn);
@@ -532,11 +548,11 @@ public class Main {
     
     private static void bookFlight(Passenger p, Connection conn) throws SQLException {
     	
-    	System.out.print("Enter Flight Id (-1 to show all flights): ");
+    	System.out.print("Enter Flight Id (-1 to show all available flights): ");
     	String flightId = s.nextLine();
     	
     	if (flightId.equals("-1")) {
-    		Airline.printAllFlights(conn);
+    		Airline.printAvailableFlights(conn);
     		
     		System.out.print("Enter Flight Id: ");
     		flightId = s.nextLine();
@@ -546,7 +562,7 @@ public class Main {
     	
     	String bookingClass = null;
     	
-    	if (f.getSeatAvailable() > 0) {
+    	if (f.getSeatAvailable() > 0 && !f.getStatus().equalsIgnoreCase("Canceled")) {
     		do {
         		System.out.print("\nChoose class\n1. First Class\n2. Business Class\n3. Economy Class\nOption: ");
         		int option = s.nextInt(); s.nextLine();
@@ -574,7 +590,6 @@ public class Main {
     				" with " + bookingClass + " class scheduled to fly at " + f.getStrDepartureTime());
     		
     		return;
-    		
     	}
     		
     	System.out.println("\nThe flight has no seat left avilable\n");
@@ -594,42 +609,94 @@ public class Main {
     	
     	Booking b = BookingService.getBookingById(bookingId, conn);
     	
-    	System.out.print("Do you want to add luggage? (Y/N): ");
-        char option = s.next().toUpperCase().charAt(0);
-        
-        while (option == 'Y') {
-            System.out.print("Enter luggage type (ex. suitcase, carry-on): ");
-            s.nextLine(); // Clear the buffer
-            String type = s.nextLine();
-            
-            double weight = 0;
-            boolean validWeight = false;
-            
-            while (!validWeight) {
-                System.out.print("Enter weight (in kg): ");
-                
-                if (s.hasNextDouble()) {
-                    weight = s.nextDouble();
-                    s.nextLine(); // Clear the buffer
-                    if (weight > 0) {
-                        validWeight = true;
-                    } else {
-                        System.out.println("Weight must be a positive value.");
-                    }
-                } else {
-                    System.out.println("Invalid weight input. Please enter a numeric value.");
-                    s.nextLine(); // Clear the invalid input
-                }
-            }
-            
-            b.addLuggage(p, new Luggage(type, weight, p));
-            
-            System.out.print("Continue adding luggage? (Y/N): ");
-            option = s.next().toUpperCase().charAt(0); // Normalize input to uppercase
-        }
-        
-        PassengerService.checkIn(b, p, conn);
-        System.out.println("\nYou have checked in successfully.\n");
+    	if (!b.isCheckedIn()) {
+    		if (!FlightService.isCanceled(bookingId, conn)) {
+    			
+    			System.out.print("Do you want to add luggage? (Y/N): ");
+    	        char option = s.next().toUpperCase().charAt(0);
+    	        
+    	        while (option == 'Y') {
+    	            System.out.print("Enter luggage type (ex. suitcase, carry-on): ");
+    	            s.nextLine(); // Clear the buffer
+    	            String type = s.nextLine();
+    	            
+    	            double weight = 0;
+    	            boolean validWeight = false;
+    	            
+    	            while (!validWeight) {
+    	                System.out.print("Enter weight (in kg): ");
+    	                
+    	                if (s.hasNextDouble()) {
+    	                    weight = s.nextDouble();
+    	                    s.nextLine(); // Clear the buffer
+    	                    if (weight > 0) {
+    	                        validWeight = true;
+    	                    } else {
+    	                        System.out.println("Weight must be a positive value.");
+    	                    }
+    	                } else {
+    	                    System.out.println("Invalid weight input. Please enter a numeric value.");
+    	                    s.nextLine(); // Clear the invalid input
+    	                }
+    	            }
+    	            
+    	            b.addLuggage(p, new Luggage(type, weight, p));
+    	            
+    	            System.out.print("Continue adding luggage? (Y/N): ");
+    	            option = s.next().toUpperCase().charAt(0); // Normalize input to uppercase
+    	        }
+    	        
+    	        PassengerService.checkIn(b, p, conn);
+    	        System.out.println("\nYou have checked in successfully.\n");
+    	        
+    	        return;
+    		}
+    			
+    		System.out.println("\nYou can't check-in on a canceled flight\n");
+    		return;
+    	} 
+    	
+    	System.out.println("\nYou have already checked in for this flight\n");
+    	return;
+    }
+    
+    private static void showLuggages(Passenger p, Connection conn) throws SQLException {
+    	
+    	System.out.print("Enter Booking Id (-1 to show all of your bookings): ");
+    	String bookingId = s.nextLine();
+    	
+    	if (bookingId.equals("-1")) {
+    		PassengerService.printBooking(p, conn);
+    		
+    		System.out.print("Enter Booking Id: ");
+    		bookingId = s.nextLine();
+    	}
+    }
+    
+    private static void cancelBooking(Passenger p, Connection conn) throws SQLException {
+    	
+    	System.out.print("Enter Booking Id (-1 to show all of your bookings): ");
+    	String bookingId = s.nextLine();
+    	
+    	if (bookingId.equals("-1")) {
+    		PassengerService.printBooking(p, conn);
+    		
+    		System.out.print("Enter Booking Id: ");
+    		bookingId = s.nextLine();
+    	}
+    	
+    	Booking b = BookingService.getBookingById(bookingId, conn);
+    	Flight f = FlightService.getFlightByBookingId(bookingId, conn);
+    	
+    	if (!b.isCheckedIn()) {
+    		BookingService.deleteBooking(b, conn);
+    		
+    		System.out.print("\nYour booking for flight " + f.getFlightNo() + " " + f.getOrigin() + "-" + f.getDestination() +
+    				" has been canceled successfully\n");
+    		return;
+    	}
+    	
+    	System.out.println("\nYou can't cancel a booking that you have already checked-in\n");
     	
     }
     

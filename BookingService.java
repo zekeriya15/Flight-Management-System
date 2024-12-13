@@ -46,7 +46,7 @@ public class BookingService {
 				boolean isCheckedIn = rs.getInt("is_checked_in") == 1;
 				int numOfLuggage = rs.getInt("num_of_luggage");
 				
-				ArrayList<Luggage> luggages = BookingService.getLuggagesByBookingId(bookingId, conn);
+				ArrayList<Luggage> luggages = getLuggagesByBookingId(bookingId, conn);
 				
 				switch (bookingClass) {
 					case "Economy":
@@ -71,7 +71,7 @@ public class BookingService {
 	public static ArrayList<Luggage> getLuggagesByBookingId(String bookingId, Connection conn) throws SQLException {
 		ArrayList<Luggage> luggages = new ArrayList<>();
 		
-		String query = "SELECT * FROM luggages WHERE booking_id = ?";
+		String query = "SELECT luggage_id FROM luggages WHERE booking_id = ?";
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ps.setString(1, bookingId);
@@ -80,19 +80,25 @@ public class BookingService {
 			
 			while (rs.next()) {
 				String luggageId = rs.getString("luggage_id");
-				String type = rs.getString("type");
-				double weight = rs.getDouble("weight");
-				
-				Luggage l = new Luggage(luggageId, type, weight);
+				Luggage l = LuggageService.getLuggageById(luggageId, conn);
 				
 				luggages.add(l);
 			}
 		}
 		
-		
 		return luggages;
 	}
 	
+	public static void deleteBooking(Booking b, Connection conn) throws SQLException {
+		
+		String query = "DELETE FROM bookings WHERE booking_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, b.getBookingId());
+			
+			ps.executeUpdate();
+		}
+	}
 	
 	
 	
