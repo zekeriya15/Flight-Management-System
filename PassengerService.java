@@ -60,6 +60,15 @@ public class PassengerService {
 		}
 	}
 	
+	public static void printBriefInfo(Passenger p, Connection conn) throws SQLException {
+		System.out.println("\n-------------------------------------------------------------------------");
+		System.out.println("First Name\tLast Name\tPassport No\tPhone\t\tBookings");
+		System.out.println(p.getFirstName() + "\t\t" + p.getLastName() + "\t\t" + p.getPassportNo() +
+				"\t" + p.getPhone() + "\t" + p.getBookings().size());
+		System.out.println("-------------------------------------------------------------------------\n");
+
+	}
+	
 	public static void addBooking(Passenger p, Flight f, String bookingClass, Connection conn) throws SQLException {
 		Booking b = null;
 		String bookingId = BookingService.generateId(p.getPassengerId(), conn);
@@ -100,7 +109,7 @@ public class PassengerService {
 	public static ArrayList<Booking> getBookings(Passenger p, Connection conn) throws SQLException {
 		ArrayList<Booking> bookings = new ArrayList<>();
 		
-		String query = "SELECT booking_id FROM bookings WHERE passenger_id = ?";
+		String query = "SELECT * FROM bookings WHERE passenger_id = ?";
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ps.setString(1, p.getPassengerId());
@@ -109,8 +118,27 @@ public class PassengerService {
 			
 			while (rs.next()) {
 				String bookingId = rs.getString("booking_id");
-				Booking b = BookingService.getBookingById(bookingId, conn);
+				String bookingClass = rs.getString("booking_class");
+				boolean isCheckedIn = rs.getInt("is_checked_in") == 1;
+				int numOfLuggage = rs.getInt("num_of_luggage");
 				
+				Booking b = null;
+				
+				ArrayList<Luggage> luggages = BookingService.getLuggagesByBookingId(bookingId, conn);
+				
+				switch (bookingClass) {
+					case "Economy":
+						b = new Economy(bookingId, isCheckedIn, numOfLuggage);
+						break;
+					case "Business":
+						b = new Business(bookingId, isCheckedIn, numOfLuggage);
+						break;
+					case "First":
+						b = new Business(bookingId, isCheckedIn, numOfLuggage);
+						break;
+				}
+				
+				b.setLuggages(luggages);
 				bookings.add(b);
 			}
 		}
@@ -118,15 +146,42 @@ public class PassengerService {
 		return bookings;
 	}
 	
-	public static void printBooking(Passenger p, Connection conn) throws SQLException {
-		String query = "SELECT * FROM bookings b JOIN flights f ON b.flight_id = f.flight_id WHERE passenger_id = ?";
+	public static ArrayList<Luggage> getLuggages(Passenger p, Connection conn) throws SQLException {
+		ArrayList<Luggage> luggages = new ArrayList<>();
 		
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+		String query = "SELECT * FROM luggages WHERE passenger_id = ?";
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ps.setString(1, p.getPassengerId());
 			
 			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String luggageId = rs.getString("luggage_id");
+				String type = rs.getString("type");
+				double weight = rs.getDouble("weight");
+				
+				Luggage l = new Luggage(luggageId, type, weight);
+				
+				luggages.add(l);
+			}	
+		}
+		
+		return luggages;
+	}
+	
+	public static void printBooking(Passenger p, Connection conn) throws SQLException {
+		String query = "SELECT * FROM bookings b JOIN flights f ON b.flight_id = f.flight_id WHERE passenger_id = ?";
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, yyyy-MM-dd HH:mm");
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, p.getPassengerId());
+			
+			ResultSet rs = ps.executeQuery();
+			
+			System.out.println("\n--------------------------------------------------------------------------------------------------------------------");
+			System.out.println("Booking Id\tFlight No\tClass\t\tStatus\t\tRoute\t\t\tDeparture Time\t\tArrival Time\t\t\tChecked In?\tNum of Luggage");
 			
 			while (rs.next()) {
 				String bookingId = rs.getString("booking_id");
@@ -141,18 +196,13 @@ public class PassengerService {
 				int numOfLuggage = rs.getInt("num_of_luggage");
 				
 				
-				System.out.println();
-				System.out.println("Booking id: " + bookingId);
-				System.out.println("Flight no: " + flightNo);
-				System.out.println("status: " + status);
-				System.out.println("Route: " + origin + " " + destination);
-				System.out.println("Schedule: " + departureTime.format(formatter) + " - " + arrivalTime.format(formatter));
-				System.out.println("Check in? " + isCheckedIn);
-				System.out.println("Class: " + bookingClass);
-				System.out.println("num of luggage: " + numOfLuggage);
-				System.out.println();
+				
+				System.out.println(bookingId + "\t\t" + flightNo + "\t\t" + bookingClass + "\t\t" + status + "\t\t" + origin + "-" + destination +
+						"\t" + departureTime.format(formatter) + "\t" + arrivalTime.format(formatter) + "\t" + isCheckedIn + "\t\t" + numOfLuggage);
 				
 			}
+			System.out.println("-----------------------------------------------------------------------------------------------------------------\n");
+
 			
 		}
 	}

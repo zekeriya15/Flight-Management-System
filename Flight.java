@@ -190,17 +190,21 @@ public class Flight {
 	
 	public void print() {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, dd MMM yyyy, HH:mm");
+	
 		
-		System.out.println("Flight Id: " + flightId);
-		System.out.println("Flight No: " + flightNo);
-		System.out.println("Origin : " + origin);
-		System.out.println("Destination: " + destination);
-		System.out.println("Departure time: " + departureTime.format(formatter));
-		System.out.println("Arrival time: " + arrivalTime.format(formatter));
-		System.out.println("Seat available: " + seatAvailable + "/" + plane.getCapacity());
-		System.out.println("status: " + status);
-		System.out.println("aircraft: " + plane.getModel());
-		System.out.println("num of booked flight: " + bookings.size());
+	    String formattedDepartureTime = departureTime.format(formatter);
+	    String formattedArrivalTime = arrivalTime.format(formatter);
+
+	    // Use String.format to pad and align all fields to the desired length
+	    String departureTimePadded = String.format("%-25s", formattedDepartureTime);  // 25 characters wide
+	    String arrivalTimePadded = String.format("%-25s", formattedArrivalTime);        // 25 characters wide
+
+	    // Print flight details with aligned columns
+	    System.out.printf("%-15s %-12s %-15s %-15s %-25s %-25s %-25s %-15s\n", 
+	                      flightId, flightNo, status, plane.getModel(), 
+	                      origin + "-" + destination, 
+	                      departureTimePadded, arrivalTimePadded, 
+	                      seatAvailable + "/" + plane.getCapacity());
 				
 	}
 }

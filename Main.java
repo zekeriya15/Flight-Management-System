@@ -14,7 +14,8 @@ public class Main {
         boolean running = true;
 
         while (running) {
-            System.out.println("\n--------- Garuda Indonesia Airline ----------");
+            System.out.println("\n----------------- Welcome to FlyGaruda -----------------"
+            		+ "\n---- Fly with Garuda Indonesia, Because You Matter. ----\n");
             System.out.println("1. Login");
             System.out.println("2. Create Account");
             System.out.println("0. Quit");
@@ -94,7 +95,6 @@ public class Main {
 
         if (rs.next()) {
             String role = rs.getString("role");
-            System.out.println("\nWelcome, " + username + " (" + role + ")");
             
             String passengerId = rs.getString("passenger_id");
             String firstName = rs.getString("first_name");
@@ -107,7 +107,7 @@ public class Main {
             
             Passenger p = new Passenger(passengerId, u, firstName, lastName, passportNo, phone);
             
-            ArrayList<Luggage> luggages = LuggageService.getLuggagesByPassengerId(passengerId, conn);
+            ArrayList<Luggage> luggages = PassengerService.getLuggages(p, conn);
             p.setLuggages(luggages);
             
             ArrayList<Booking> bookings = PassengerService.getBookings(p, conn);
@@ -117,7 +117,7 @@ public class Main {
                 adminMenu(conn);
             } else if (role.equalsIgnoreCase("passenger")) {
 //               displayPassengerDetails(rs, conn);
-            	passengerMenu(p, conn);
+            	passengerMenu(username, p, conn);
             	
             }
             
@@ -128,20 +128,24 @@ public class Main {
 
     private static void adminMenu(Connection conn) throws SQLException {
         boolean adminRunning = true;
+        
 
         while (adminRunning) {
-            System.out.println("\n------ Admin Menu ------");
+            System.out.println("\nWelcome, Admin");
+            Airline.printBriefInfo(conn);
+
             System.out.println("1. Create Aircraft");
-            System.out.println("2. Edit Aircraft");
-            System.out.println("3. Create Flight");
-            System.out.println("4. Create New Flight Schedule");
-            System.out.println("5. Delay Flight");
-            System.out.println("6. Cancel Flight");
+            System.out.println("2. Create Flight");
+            System.out.println("3. Create New Flight Schedule");
+            System.out.println("4. Delay Flight");
+            System.out.println("5. Cancel Flight");
+            System.out.println("6. Edit Aircraft");
             System.out.println("7. Edit Flight");
             System.out.println("8. Delete Aircraft");
             System.out.println("9. Delete Flight");
-            System.out.println("10. Find Flights by Route");
-            System.out.println("11. Show All Aircrafts");
+            System.out.println("10. Find All Flights by Route");
+            System.out.println("11. Show Checked-in Passengers");
+            System.out.println("12. Show All Aircrafts");
             System.out.println("20. Show All Flights");
             System.out.println("0. Logout");
             System.out.print("\nChoose an option: ");
@@ -155,19 +159,19 @@ public class Main {
                     createAircraft(conn);
                     break;
                 case 2:
-                	editAircraft(conn);
-                	break;
-                case 3:
                 	createFlight(conn);
                 	break;
-                case 4:
+                case 3:
                 	createNewSchedule(conn);
                 	break;
-                case 5:
+                case 4:
                 	delayFlight(conn);
                 	break;
-                case 6:
+                case 5:
                 	cancelFlight(conn);
+                	break;
+                case 6:
+                	editAircraft(conn);
                 	break;
                 case 7:
                 	editFlight(conn);
@@ -179,11 +183,12 @@ public class Main {
                 	deleteFlight(conn);
                 	break;
                 case 10:
-                	findFlightsByRoute(conn);
+                	findAllFlightsByRoute(conn);
                 	break;
-                	
-                	
                 case 11:
+                	getCheckedInPassengers(conn);
+                	break;
+                case 12:
                 	Airline.printAllAircrafts(conn);
                 	break;
                 case 20:
@@ -203,6 +208,10 @@ public class Main {
 
         System.out.print("Enter model: ");
         String model = s.nextLine();
+        
+        if (model.equals("0")) {
+        	return;
+        }
 
         System.out.print("Enter capacity: ");
         int capacity = s.nextInt();
@@ -228,6 +237,8 @@ public class Main {
     		
     		System.out.print("Enter Aircraft Id: ");
     		aircraftId = s.nextLine();
+    	} else if (aircraftId.equals("0")) {
+    		return;
     	}
     	
     	Aircraft plane = AircraftService.getAircraftById(aircraftId, conn);
@@ -263,6 +274,8 @@ public class Main {
     		
     		System.out.print("Enter Aircraft Id: ");
     		aircraftId = s.nextLine();
+    	} else if (aircraftId.equals("0")) {
+    		return;
     	}
     	
     	Aircraft plane = AircraftService.getAircraftById(aircraftId, conn);
@@ -303,6 +316,8 @@ public class Main {
     		
     		System.out.print("Enter Flight No: ");
     		flightNo = s.nextLine();
+    	} else if (flightNo.equals("0")) {
+    		return;
     	}
     	
     	Flight f = FlightService.getFlightByNo(flightNo, conn);
@@ -339,6 +354,8 @@ public class Main {
     		
     		System.out.print("Enter Flight Id: ");
     		flightId = s.nextLine();
+    	} else if (flightId.equals("0")) {
+    		return;
     	}
     	
     	Flight f = FlightService.getFlightById(flightId, conn);
@@ -356,6 +373,8 @@ public class Main {
     		
     		System.out.print("Enter Flight Id: ");
     		flightId = s.nextLine();
+    	} else if (flightId.equals("0")) {
+    		return;
     	}
     	
     	Flight f = FlightService.getFlightById(flightId, conn);
@@ -373,6 +392,8 @@ public class Main {
     		
     		System.out.print("Enter Flight Id: ");
     		flightId = s.nextLine();
+    	} else if (flightId.equals("0")) {
+    		return;
     	}
     	
     	Flight f = FlightService.getFlightById(flightId, conn);
@@ -421,16 +442,18 @@ public class Main {
     private static void deleteAircraft(Connection conn) throws SQLException {
     	
     	System.out.print("Enter Aircraft Id (-1 to show all aircrafts): ");
-    	String flightId = s.nextLine();
+    	String aircraftId = s.nextLine();
     	
-    	if (flightId.equals("-1")) {
+    	if (aircraftId.equals("-1")) {
     		Airline.printAllAircrafts(conn);
     		
     		System.out.print("Enter Aircraft Id: ");
-    		flightId = s.nextLine();
+    		aircraftId = s.nextLine();
+    	} else if (aircraftId.equals("0")) {
+    		return;
     	}
     	
-    	Aircraft plane = AircraftService.getAircraftById(flightId, conn);
+    	Aircraft plane = AircraftService.getAircraftById(aircraftId, conn);
     	
     	System.out.print("Are you sure you want to delete this aircraft? (Y/N) ");
     	char yN = s.next().charAt(0);
@@ -454,6 +477,8 @@ public class Main {
     		
     		System.out.print("Enter Flight Id: ");
     		flightId = s.nextLine();
+    	} else if (flightId.equals("0")) {
+    		return;
     	}
     	
     	Flight f = FlightService.getFlightById(flightId, conn);
@@ -470,8 +495,7 @@ public class Main {
     	return;
     }
     
-    
-    private static void findFlightsByRoute(Connection conn) throws SQLException {
+    private static void findAllFlightsByRoute(Connection conn) throws SQLException {
     	
     	System.out.print("Enter origin: ");
     	String origin = s.nextLine();
@@ -482,22 +506,43 @@ public class Main {
     	Airline.findFlightsByRoute(origin, destination, conn);
     }
     
-    private static void passengerMenu(Passenger p, Connection conn) throws SQLException {
+    private static void getCheckedInPassengers(Connection conn) throws SQLException {
+    	
+    	System.out.print("Enter Flight Id (-1 to show all flights): ");
+    	String flightId = s.nextLine();
+    	
+    	if (flightId.equals("-1")) {
+    		Airline.printAllFlights(conn);
+    		
+    		System.out.print("Enter Flight Id: ");
+    		flightId = s.nextLine();
+    	} else if (flightId.equals("0")) {
+    		return;
+    	}
+    	
+    	Flight f = FlightService.getFlightById(flightId, conn);
+    	
+    	Airline.getCheckedInPassengers(f, conn);
+    	
+    	
+    }
+
+    
+    private static void passengerMenu(String username, Passenger p, Connection conn) throws SQLException {
     	boolean psgRunning = true;
     	
     	while (psgRunning) {
-    		System.out.println("\n------------------------------------\n");
-        	System.out.print(p.getFirstName() + "\t" + p.getLastName() + "\t" + p.getPassportNo() + "\t" + p.getPhone());
-        	System.out.println("\n------------------------------------\n");
+    		System.out.println("\nWelcome, " + username);
+    		PassengerService.printBriefInfo(p, conn);
         	
         	System.out.println("1. Show All Available Flights");
         	System.out.println("2. Find Flights by Route");
         	System.out.println("3. Book a Flight");
         	System.out.println("4. Check-In");
-        	System.out.println("5. Show Your Luggages");
-        	System.out.println("6. Cancel Booking");
-        	System.out.println("9. Show Your Bookings");
-        	System.out.println("10. Edit profile");
+        	System.out.println("5. Show Your Bookings");
+        	System.out.println("6. Show Your Luggages");
+        	System.out.println("7. Cancel Booking");
+        	System.out.println("8. Edit profile");
         	System.out.println("0. Logout");
         	
         	System.out.println();
@@ -521,21 +566,17 @@ public class Main {
         			checkIn(p, conn);
         			break;
         		case 5:
-        			showLuggages(p, conn);
-        			break;
-        		case 6:
-        			cancelBooking(p, conn);
-        			break;
-        			
-        			
-        		case 9:
         			PassengerService.printBooking(p, conn);
         			break;
-        		case 10:
+        		case 6:
+        			showLuggages(p, conn);
+        			break;
+        		case 7:
+        			cancelBooking(p, conn);
+        			break;
+        		case 8:
         			editProfile(p, conn);
         			break;
-        			
-        			
         		case 0:
         			psgRunning = false;
         			System.out.println("\nLogout successfully\n");
@@ -545,6 +586,16 @@ public class Main {
     	
     }
     
+    private static void findFlightsByRoute(Connection conn) throws SQLException {
+    	
+    	System.out.print("Enter origin: ");
+    	String origin = s.nextLine();
+    	
+    	System.out.print("Enter destination: ");
+    	String destination = s.nextLine();
+    	
+    	Airline.findAvailableFlightsByRoute(origin, destination, conn);
+    }
     
     private static void bookFlight(Passenger p, Connection conn) throws SQLException {
     	
@@ -556,13 +607,15 @@ public class Main {
     		
     		System.out.print("Enter Flight Id: ");
     		flightId = s.nextLine();
+    	} else if (flightId.equals("0")) {
+    		return;
     	}
     	
     	Flight f = FlightService.getFlightById(flightId, conn);
     	
     	String bookingClass = null;
     	
-    	if (f.getSeatAvailable() > 0 && !f.getStatus().equalsIgnoreCase("Canceled")) {
+    	if (f.getSeatAvailable() > 0 && !f.getStatus().equalsIgnoreCase("Cancelled")) {
     		do {
         		System.out.print("\nChoose class\n1. First Class\n2. Business Class\n3. Economy Class\nOption: ");
         		int option = s.nextInt(); s.nextLine();
@@ -586,7 +639,7 @@ public class Main {
     		
     		PassengerService.addBooking(p, f, bookingClass, conn);
     		
-    		System.out.println("\nYou have successfully booked flight from " + f.getOrigin() + " to " + f.getDestination() + 
+    		System.out.println("\nYou have successfully booked flight " + f.getFlightNo() + " from " + f.getOrigin() + " to " + f.getDestination() + 
     				" with " + bookingClass + " class scheduled to fly at " + f.getStrDepartureTime());
     		
     		return;
@@ -605,12 +658,14 @@ public class Main {
     		
     		System.out.print("Enter Booking Id: ");
     		bookingId = s.nextLine();
+    	} else if (bookingId.equals("0")) {
+    		return;
     	}
     	
     	Booking b = BookingService.getBookingById(bookingId, conn);
     	
     	if (!b.isCheckedIn()) {
-    		if (!FlightService.isCanceled(bookingId, conn)) {
+    		if (!FlightService.isCancelled(bookingId, conn)) {
     			
     			System.out.print("Do you want to add luggage? (Y/N): ");
     	        char option = s.next().toUpperCase().charAt(0);
@@ -647,12 +702,17 @@ public class Main {
     	        }
     	        
     	        PassengerService.checkIn(b, p, conn);
-    	        System.out.println("\nYou have checked in successfully.\n");
+    	        
+    	        if (b.getNumOfLuggage() != 0) {
+    	        	System.out.println("\nYou have checked in with " + b.numOfLuggage + " luggage(s) successfully.\n");
+    	        } else {
+    	        	System.out.println("\nYou have checked in successfully.\n");
+    	        }
     	        
     	        return;
     		}
     			
-    		System.out.println("\nYou can't check-in on a canceled flight\n");
+    		System.out.println("\nYou can't check-in on a cancelled flight\n");
     		return;
     	} 
     	
@@ -670,7 +730,11 @@ public class Main {
     		
     		System.out.print("Enter Booking Id: ");
     		bookingId = s.nextLine();
+    	} else if (bookingId.equals("0")) {
+    		return;
     	}
+    	
+    	LuggageService.printLuggages(bookingId, conn);
     }
     
     private static void cancelBooking(Passenger p, Connection conn) throws SQLException {
@@ -683,6 +747,8 @@ public class Main {
     		
     		System.out.print("Enter Booking Id: ");
     		bookingId = s.nextLine();
+    	} else if (bookingId.equals("0")) {
+    		return;
     	}
     	
     	Booking b = BookingService.getBookingById(bookingId, conn);
@@ -692,7 +758,7 @@ public class Main {
     		BookingService.deleteBooking(b, conn);
     		
     		System.out.print("\nYour booking for flight " + f.getFlightNo() + " " + f.getOrigin() + "-" + f.getDestination() +
-    				" has been canceled successfully\n");
+    				" has been cancelled successfully\n");
     		return;
     	}
     	
@@ -707,6 +773,8 @@ public class Main {
     	String firstName = s.nextLine();
     	if (firstName.equals("-1")) {
     		firstName = p.getFirstName();
+    	} else if (firstName.equals("0")) {
+    		return;
     	}
     	
     	System.out.print("Enter last name (-1 to keep old value): ");
@@ -736,6 +804,7 @@ public class Main {
     	
     	System.out.println("\nYour profile edited successfully\n");
     }
+    
 
     private static void displayPassengerDetails(ResultSet rs, Connection conn) throws SQLException {
         System.out.println("\n====== Passenger Details ======");

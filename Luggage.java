@@ -69,5 +69,9 @@ public class Luggage {
 		this.weight = weight;
 	}
 	
+	
+	public void print() {
+		System.out.println(type + "\t" + weight + " kg");
+	}
 
 }

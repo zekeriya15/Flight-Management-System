@@ -71,5 +71,48 @@ public class LuggageService {
 		return luggages;
 	}
 	
+	private static ArrayList<Luggage> getLuggagesByBookingId(String bookingId, Connection conn) throws SQLException {
+		ArrayList<Luggage> luggages = new ArrayList<>();
+		
+		String query = "SELECT luggage_id FROM luggages WHERE booking_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, bookingId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String luggageId = rs.getString("luggage_id");
+				Luggage l = getLuggageById(luggageId, conn);
+				
+				luggages.add(l);
+			}	
+		}
+		
+		
+		return luggages;
+	}
 	
+	public static void printLuggages(String bookingId, Connection conn) throws SQLException {
+		ArrayList<Luggage> luggages = getLuggagesByBookingId(bookingId, conn);
+		double total = 0;
+		
+		if (!luggages.isEmpty()) {
+			System.out.println("\n-------------------------------------------------");
+			System.out.println("Type\t\tWeight");
+			
+			for (Luggage l : luggages) {
+				l.print();
+				total += l.getWeight();
+			}
+			System.out.println("\nTotal Weight:\t" + total + " kg");
+			System.out.println("-------------------------------------------------\n");
+
+		} else {
+			System.out.println("\nYou don't have any luggages in this flight\n");
+		}
+		
+		
+		
+	}
 }

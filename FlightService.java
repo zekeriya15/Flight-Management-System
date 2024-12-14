@@ -164,7 +164,7 @@ public class FlightService {
 	public static ArrayList<Booking> getBookingsByFlightId(String flightId, Connection conn) throws SQLException {
 		ArrayList<Booking> bookings = new ArrayList<>();
 		
-		String query = "SELECT booking_id FROM bookings WHERE flight_id = ?";
+		String query = "SELECT * FROM bookings WHERE flight_id = ?";
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ps.setString(1, flightId);
@@ -173,9 +173,25 @@ public class FlightService {
 			
 			while (rs.next()) {
 				String bookingId = rs.getString("booking_id");
+				String bookingClass = rs.getString("booking_class");
+				boolean isCheckedIn = rs.getInt("is_checked_in") == 1;
+				int numOfLuggage = rs.getInt("num_of_luggage");
 				
-				Booking b = BookingService.getBookingById(bookingId, conn);
+				Booking b = null;
+				
 				ArrayList<Luggage> luggages = BookingService.getLuggagesByBookingId(bookingId, conn);
+				
+				switch (bookingClass) {
+					case "Economy":
+						b = new Economy(bookingId, isCheckedIn, numOfLuggage);
+						break;
+					case "Business":
+						b = new Business(bookingId, isCheckedIn, numOfLuggage);
+						break;
+					case "First":
+						b = new Business(bookingId, isCheckedIn, numOfLuggage);
+						break;
+				}
 				
 				b.setLuggages(luggages);
 				bookings.add(b);
@@ -201,7 +217,7 @@ public class FlightService {
 	}
 	
 	public static void cancelFlight(Flight f, Connection conn) throws SQLException {
-		String query = "UPDATE flights SET status = 'Canceled' WHERE flight_id = ?";
+		String query = "UPDATE flights SET status = 'Cancelled' WHERE flight_id = ?";
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ps.setString(1, f.getFlightId());
@@ -211,7 +227,7 @@ public class FlightService {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, dd MMM yyyy, HH:mm");
 			
 			System.out.println("\nFlight no " + f.getFlightNo() + " with route " + f.getOrigin() + " - " + f.getDestination() + " scheduled to fly at " +
-					f.getDepartureTime().format(formatter) + " is canceled");
+					f.getDepartureTime().format(formatter) + " is cancelled");
 		}
 	}
 	
@@ -228,7 +244,7 @@ public class FlightService {
 		}
 	}
 	
-	public static boolean isCanceled(String bookingId, Connection conn) throws SQLException {
+	public static boolean isCancelled(String bookingId, Connection conn) throws SQLException {
 		String query = "SELECT status FROM flights f JOIN bookings b ON f.flight_id = b.flight_id WHERE booking_id = ?";
 		
 		boolean status = false;
@@ -239,7 +255,7 @@ public class FlightService {
 			ResultSet rs = ps.executeQuery();
 			
 			if (rs.next()) {
-				status = rs.getString("status").equalsIgnoreCase("Canceled");
+				status = rs.getString("status").equalsIgnoreCase("Cancelled");
 			}
 		}
 		
