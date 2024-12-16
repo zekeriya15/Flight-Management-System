@@ -56,7 +56,7 @@ public class BookingService {
 						b = new Business(bookingId, isCheckedIn, numOfLuggage);
 						break;
 					case "First":
-						b = new Business(bookingId, isCheckedIn, numOfLuggage);
+						b = new First(bookingId, isCheckedIn, numOfLuggage);
 						break;
 				}
 				

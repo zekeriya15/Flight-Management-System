@@ -101,22 +101,4 @@ public class Passenger {
 		this.bookings = bookings;
 	}
 	
-	
-	
-	
-	public void savePassenger(Connection conn) throws SQLException {
-		
-		String query = "INSERT INTO passengers VALUES (?, ?, ?, ?, ?, ?)";
-		PreparedStatement ps = conn.prepareStatement(query);
-		
-		ps.setString(1, passengerId);
-		ps.setString(2, firstName);
-		ps.setString(3, lastName);
-		ps.setString(4, passportNo);
-		ps.setString(5, phone);
-		ps.setString(6, user.getUserId());
-		
-		int rowAffected = ps.executeUpdate();
-		
-	}
 }

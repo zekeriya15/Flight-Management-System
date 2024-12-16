@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Airline {
 
@@ -103,25 +104,13 @@ public class Airline {
 	    }
 	}
 	
-//	public static void printAllAircrafts(Connection conn) throws SQLException {
-//		ArrayList<Aircraft> aircrafts = getAircrafts(conn);
-//		
-//		if (!aircrafts.isEmpty()) {
-//			for (Aircraft af : aircrafts) {
-//				System.out.println();
-//				af.print();
-//				System.out.println();
-//			}
-//		} else {
-//			System.out.println("\nThere are no aircrafts\n");
-//		}
-//	}
 	
 	
 	private static ArrayList<Flight> getFlights(Connection conn) throws SQLException {
 		ArrayList<Flight> flights = new ArrayList<>();
 		
-		String query = "SELECT * FROM flights ORDER BY departure_time";
+		String query = "SELECT * FROM flights";
+
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ResultSet rs = ps.executeQuery();
@@ -156,6 +145,7 @@ public class Airline {
 	
 	public static void printAllFlights(Connection conn) throws SQLException {
 		ArrayList<Flight> flights = getFlights(conn);
+		Collections.sort(flights);
 		
 		if (!flights.isEmpty()) {
 			System.out.println("\n----------------------------------------------------------------------------------------------------");
@@ -176,7 +166,7 @@ public class Airline {
 	private static ArrayList<Flight> getAvailableFlights(Connection conn) throws SQLException {
 		ArrayList<Flight> flights = new ArrayList<>();
 		
-		String query = "SELECT * FROM flights WHERE status != 'Cancelled' ORDER BY departure_time";
+		String query = "SELECT * FROM flights WHERE status != 'Cancelled'";
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ResultSet rs = ps.executeQuery();
@@ -211,6 +201,7 @@ public class Airline {
 	
 	public static void printAvailableFlights(Connection conn) throws SQLException {
 		ArrayList<Flight> flights = getAvailableFlights(conn);
+		Collections.sort(flights);
 		
 		if (!flights.isEmpty()) {
 			System.out.println("\n----------------------------------------------------------------------------------------------------");
@@ -230,7 +221,7 @@ public class Airline {
 	private static ArrayList<Flight> getFlightsByRoute(String origin, String destination, Connection conn) throws SQLException {
 		ArrayList<Flight> flights = new ArrayList<>();
 		
-		String query = "SELECT * FROM flights WHERE origin = ? AND destination = ? ORDER BY departure_time";
+		String query = "SELECT * FROM flights WHERE origin = ? AND destination = ?";
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ps.setString(1, origin);
@@ -264,6 +255,7 @@ public class Airline {
 	
 	public static void findFlightsByRoute(String origin, String destination, Connection conn) throws SQLException {
 		ArrayList<Flight> flights = getFlightsByRoute(origin, destination, conn);
+		Collections.sort(flights);
 		
 		if (!flights.isEmpty()) {
 			System.out.println("\n----------------------------------------------------------------------------------------------------");
@@ -285,7 +277,7 @@ public class Airline {
 	private static ArrayList<Flight> getAvailableFlightsByRoute(String origin, String destination, Connection conn) throws SQLException {
 		ArrayList<Flight> flights = new ArrayList<>();
 		
-		String query = "SELECT * FROM flights WHERE origin = ? AND destination = ? AND status = 'On Time' ORDER BY departure_time";
+		String query = "SELECT * FROM flights WHERE origin = ? AND destination = ? AND status = 'On Time'";
 		
 		try (PreparedStatement ps = conn.prepareStatement(query)) {
 			ps.setString(1, origin);
@@ -319,13 +311,18 @@ public class Airline {
 	
 	public static void findAvailableFlightsByRoute(String origin, String destination, Connection conn) throws SQLException {
 		ArrayList<Flight> flights = getAvailableFlightsByRoute(origin, destination, conn);
+		Collections.sort(flights);
 		
 		if (!flights.isEmpty()) {
+			System.out.println("\n----------------------------------------------------------------------------------------------------");
+	        System.out.printf("%-15s %-12s %-15s %-15s %-25s %-20s %-20s %-15s\n", 
+	                          "Flight Id", "Flight No", "Status", "Aircraft", 
+	                          "Route", "Departure Time", "Arrival Time", "Seat Available");
 			for (Flight f : flights) {
-				System.out.println();
 				f.print();
-				System.out.println();
 			}
+			System.out.println("----------------------------------------------------------------------------------------------------\n");
+
 		} else {
 			System.out.println("\nThere are no flights from " + origin + " to " + destination + "\n");
 		}
@@ -333,7 +330,7 @@ public class Airline {
 	}
 	
 	public static void getCheckedInPassengers(Flight f, Connection conn) throws SQLException {
-		ArrayList<Passenger> passengers = new ArrayList<>();
+//		ArrayList<Passenger> passengers = new ArrayList<>();
 		
 		String query = "SELECT * FROM passengers p JOIN bookings b ON p.passenger_id = b.passenger_id WHERE is_checked_in = 1 AND flight_id = ?";
 		

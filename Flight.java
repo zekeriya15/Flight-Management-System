@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
-public class Flight {
+public class Flight implements Comparable<Flight> {
 	private static final String CODE = "FL";
 
 	
@@ -47,25 +47,7 @@ public class Flight {
 		this.bookings = new ArrayList<>();
 	}
 	
-//	private static int generateId(Connection conn) throws SQLException {
-//		int id = 0;
-//		
-//		String query = "SELECT flight_id FROM flights ORDER BY flight_id DESC LIMIT 1";
-//		PreparedStatement ps = conn.prepareStatement(query);
-//		
-//		ResultSet rs = ps.executeQuery();
-//		
-//		if (rs.next()) {
-//			String lastFlightId = rs.getString("flight_id");
-//			String numValue = lastFlightId.substring(CODE.length());
-//			int numValueParsed = Integer.parseInt(numValue);
-//			
-//			id = ++numValueParsed;
-//		}
-//		
-//		return id;
-//	}
-	
+
 	
 	// getters
 	public static String getCode() {
@@ -186,6 +168,10 @@ public class Flight {
 		this.bookings = bookings;
 	}
 	
+	@Override
+	public int compareTo(Flight other) {
+		return this.departureTime.compareTo(other.departureTime);
+	}
 	
 	
 	public void print() {

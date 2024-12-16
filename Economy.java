@@ -6,8 +6,8 @@ import java.util.ArrayList;
 
 
 public class Economy extends Booking {
-	private final int MAX_LUGGAGE = 2;
-	private final double MAX_WEIGHT = 30;
+	private static final int MAX_LUGGAGE = 2;
+	private static final double MAX_WEIGHT = 30;
 	
 	
 	public Economy(String bookingId) {
