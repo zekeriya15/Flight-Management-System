@@ -18,25 +18,6 @@ public class User {
 		this.password = password;
 	}
 	
-	private static int generateId(Connection conn) throws SQLException {
-		int id = 0;
-		
-		String query = "SELECT user_id FROM users ORDER BY user_id DESC LIMIT 1";
-		PreparedStatement ps = conn.prepareStatement(query);
-		
-		ResultSet rs = ps.executeQuery();
-		
-		if (rs.next()) {
-			String lastUserId = rs.getString("user_id");
-			String numValue = lastUserId.substring(CODE.length());
-			int numValueParsed = Integer.parseInt(numValue);
-			
-			id = ++numValueParsed;
-		}
-		
-		return id;
-	}
-	
 	
 	// getters
 	public static String getCode() {
