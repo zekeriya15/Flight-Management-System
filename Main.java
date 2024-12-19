@@ -144,8 +144,12 @@ public class Main {
             System.out.println("8. Delete Aircraft");
             System.out.println("9. Delete Flight");
             System.out.println("10. Find All Flights by Route");
-            System.out.println("11. Show Checked-in Passengers");
-            System.out.println("12. Show All Aircrafts");
+            System.out.println("11. Show booked passengers");
+            System.out.println("12. Show Checked-in Passengers");
+            System.out.println("13. Show All Bookings");
+            System.out.println("14. Show All Passengers");
+            System.out.println("15. Show All Aircrafts");
+            System.out.println("16. Show Flights by Aircraft");
             System.out.println("20. Show All Flights");
             System.out.println("0. Logout");
             System.out.print("\nChoose an option: ");
@@ -186,10 +190,22 @@ public class Main {
                 	findAllFlightsByRoute(conn);
                 	break;
                 case 11:
-                	getCheckedInPassengers(conn);
+                	getBookedPassengers(conn);
                 	break;
                 case 12:
+                	getCheckedInPassengers(conn);
+                	break;
+                case 13:
+                	Airline.printAllBookings(conn);
+                	break;
+                case 14:
+                	Airline.printAllPassengers(conn);
+                	break;
+                case 15:
                 	Airline.printAllAircrafts(conn);
+                	break;
+                case 16:
+                	getAllFlightsByAircraft(conn);
                 	break;
                 case 20:
                 	Airline.printAllFlights(conn);
@@ -506,6 +522,23 @@ public class Main {
     	Airline.findFlightsByRoute(origin, destination, conn);
     }
     
+    private static void getBookedPassengers(Connection conn) throws SQLException {
+    	
+    	System.out.print("Enter Flight Id (-1 to show all flights): ");
+    	String flightId = s.nextLine();
+    	
+    	if (flightId.equals("-1")) {
+    		Airline.printAllFlights(conn);
+    		
+    		System.out.print("Enter flight Id: ");
+    		flightId = s.nextLine();
+    	} else if (flightId.equals("0")) {
+    		return;
+    	}
+    	
+    	Airline.getPassengersByFlightId(flightId, conn);
+    }
+    
     private static void getCheckedInPassengers(Connection conn) throws SQLException {
     	
     	System.out.print("Enter Flight Id (-1 to show all flights): ");
@@ -523,8 +556,23 @@ public class Main {
     	Flight f = FlightService.getFlightById(flightId, conn);
     	
     	Airline.getCheckedInPassengers(f, conn);
+    }
+    
+    private static void getAllFlightsByAircraft(Connection conn) throws SQLException {
     	
+    	System.out.print("Enter Aircraft Id (-1 to show all aircrafts):");
+    	String aircraftId = s.nextLine();
     	
+    	if (aircraftId.equals("-1")) {
+    		Airline.printAllAircrafts(conn);
+    		
+    		System.out.print("Enter Aircraft Id: ");
+    		aircraftId = s.nextLine();
+    	} else if (aircraftId.equals("0")) {
+    		return;
+    	}
+    	
+    	Airline.printFlightsByAircraftId(aircraftId, conn);
     }
 
     

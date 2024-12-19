@@ -101,4 +101,9 @@ public class Passenger {
 		this.bookings = bookings;
 	}
 	
+	public void print() {
+		System.out.println(passengerId + "\t\t" + firstName + "\t\t" + lastName + "\t\t" + passportNo + "\t" + phone + "\t\t" + 
+						bookings.size() + "\t\t\t" + luggages.size());
+	}
+	
 }

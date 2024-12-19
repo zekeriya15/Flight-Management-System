@@ -3,6 +3,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -358,4 +359,176 @@ public class Airline {
 
 		}
 	}
+	
+	
+	public static void getPassengersByFlightId(String flightId, Connection conn) throws SQLException {
+		
+		String query = "SELECT * from passengers p JOIN bookings b ON p.passenger_id = b.passenger_id WHERE flight_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, flightId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			System.out.println("\n----------------------------------------------------------------------------------------------------------------------------------------");
+			System.out.println("Passenger Id\tBooking Id\tFirst Name\tLast Name\tPassport No\tPhone\t\tClass\t\tChecked-in?\tNum of Luggage");
+			while (rs.next()) {
+				String passengerId = rs.getString("passenger_id");
+				String bookingId = rs.getString("booking_id");
+				String firstName = rs.getString("first_name");
+				String lastName = rs.getString("last_name");
+				String passportNo = rs.getString("passport_no");
+				String phone = rs.getString("phone");
+				String bookingClass = rs.getString("booking_class");
+				boolean status = rs.getInt("is_checked_in") == 1;
+				int numOfLuggage = rs.getInt("num_of_luggage");
+				
+				System.out.println(passengerId + "\t\t" + bookingId + "\t\t" + firstName + "\t\t" + lastName + "\t\t" + passportNo + "\t" +
+							phone + "\t" + bookingClass + "\t\t"  + status + "\t\t" + numOfLuggage);
+			}
+			
+			System.out.println("----------------------------------------------------------------------------------------------------------------------------------------\n");
+		}
+	}
+	
+	private static ArrayList<Passenger> getAllPassengers(Connection conn) throws SQLException {
+		ArrayList<Passenger> passengers = new ArrayList<>();
+		
+		String query = "SELECT * FROM passengers ORDER BY passenger_id DESC";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String passengerId = rs.getString("passenger_id");
+				String firstName = rs.getString("first_name");
+				String lastName = rs.getString("last_name");
+				String passportNo = rs.getString("passport_no");
+				String phone = rs.getString("phone");
+				String userId = rs.getString("user_id");
+				
+				if (lastName.equalsIgnoreCase("admin")) {
+					continue;
+				}
+				
+				Passenger p = new Passenger(passengerId, UserService.getUserById(userId, conn), firstName, lastName, passportNo, phone);
+				
+				ArrayList<Booking> bookings = PassengerService.getBookings(p, conn);
+				p.setBookings(bookings);
+				
+				ArrayList<Luggage> luggage = PassengerService.getLuggages(p, conn);
+				p.setLuggages(luggage);
+				
+				passengers.add(p);
+			}
+		}
+		
+		return passengers;
+	}
+	
+	public static void printAllPassengers(Connection conn) throws SQLException {
+		ArrayList<Passenger> passengers = getAllPassengers(conn);
+		
+		System.out.println("\n----------------------------------------------------------------------------------------------------------------------------------------");
+		System.out.println("Passenger Id\tFirst Name\tLast Name\tPassport No\tPhone\t\tNum of Bookings\t\tNum of Luggages");
+		for (Passenger p : passengers) {
+			p.print();
+		}
+		
+		System.out.println("\n----------------------------------------------------------------------------------------------------------------------------------------");
+	}
+	
+	private static ArrayList<Flight> getFlightsByAircraftId(String aircraftId, Connection conn) throws SQLException {
+		ArrayList<Flight> flights = new ArrayList<>();
+		
+		String query = "SELECT * FROM flights WHERE aircraft_id = ?";
+		
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setString(1, aircraftId);
+			
+			ResultSet rs = ps.executeQuery();
+			
+			while (rs.next()) {
+				String flightId = rs.getString("flight_id");
+				String flightNo = rs.getString("flight_no");
+				String origin = rs.getString("origin");
+				String destination = rs.getString("destination");
+				LocalDateTime departureTime = rs.getTimestamp("departure_time").toLocalDateTime();
+				LocalDateTime arrivalTime = rs.getTimestamp("arrival_time").toLocalDateTime();
+				int seatAvailable = rs.getInt("seat_available");
+				String status = rs.getString("status");
+//				String aircraftId = rs.getString("aircraft_id");
+				
+				Aircraft plane = AircraftService.getAircraftById(aircraftId, conn);
+				ArrayList<Booking> bookings = FlightService.getBookingsByFlightId(flightId, conn);
+				
+				Flight f = new Flight(flightId, flightNo, plane, origin, destination, seatAvailable, status);
+				f.setDepartureTime(departureTime);
+				f.setArrivalTime(arrivalTime);
+				f.setBooking(bookings);
+				
+				flights.add(f);
+			}
+		}
+		
+		return flights;
+	}
+	
+	public static void printFlightsByAircraftId(String aircraftId, Connection conn) throws SQLException {
+		ArrayList<Flight> flights = getFlightsByAircraftId(aircraftId, conn);
+		
+		if (!flights.isEmpty()) {
+			System.out.println("\n----------------------------------------------------------------------------------------------------");
+	        System.out.printf("%-15s %-12s %-15s %-15s %-25s %-20s %-20s %-15s\n", 
+	                          "Flight Id", "Flight No", "Status", "Aircraft", 
+	                          "Route", "Departure Time", "Arrival Time", "Seat Available");
+			for (Flight f : flights) {
+				f.print();
+			}
+			System.out.println("----------------------------------------------------------------------------------------------------\n");
+
+		} else {
+			System.out.println("There is no flight for aircfart id " + aircraftId);
+		}
+	}
+	
+	public static void printAllBookings(Connection conn) throws SQLException {
+		
+		String query = "SELECT * FROM bookings b JOIN passengers p ON b.passenger_id = p.passenger_id JOIN flights f ON b.flight_id = f.flight_id JOIN aircrafts a ON a.aircraft_id = f.aircraft_id";
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, yyyy-MM-dd HH:mm");
+
+		try (PreparedStatement ps = conn.prepareStatement(query)) {
+			ResultSet rs = ps.executeQuery();
+			
+			System.out.println("\n--------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+			System.out.println("Booking Id\tPassenger Id\tFirst Name\tLast Name\tFlight No\tAircraft\t\tClass\t\tStatus\t\tRoute\t\t\tDeparture Time\t\t\t\tArrival Time\t\t\t\tChecked In?\tNum of Luggage");
+			
+			while (rs.next()) {
+				String bookingId = rs.getString("booking_id");
+				String passengerId = rs.getString("passenger_id");
+				String firstName = rs.getString("first_name");
+				String lastName = rs.getString("last_name");
+				String flightNo = rs.getString("flight_no");
+				String aircraft = rs.getString("model");
+				String status = rs.getString("status");
+				String origin = rs.getString("origin");
+				String destination = rs.getString("destination");
+				LocalDateTime departureTime = rs.getTimestamp("departure_time").toLocalDateTime();
+				LocalDateTime arrivalTime = rs.getTimestamp("arrival_time").toLocalDateTime();
+				boolean isCheckedIn = rs.getInt("is_checked_in") == 1;
+				String bookingClass = rs.getString("booking_class");
+				int numOfLuggage = rs.getInt("num_of_luggage");
+				
+				
+				
+				System.out.println(bookingId + "\t\t " + passengerId + "\t\t" + firstName + "\t\t" + lastName + "\t\t" + flightNo + "\t\t" + aircraft + "\t\t" + bookingClass + "\t\t" + status + "\t\t" + origin + "-" + destination +
+						"\t\t" + departureTime.format(formatter) + "\t\t" + arrivalTime.format(formatter) + "\t\t\t" + isCheckedIn + "\t\t" + numOfLuggage);
+				
+			}
+			
+			System.out.println("\n--------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+		}
+	}
+	
+	
 }
