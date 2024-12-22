@@ -101,6 +101,7 @@ public class PassengerService {
 			ps.setString(6, p.getPassengerId());
 			
 			ps.executeUpdate();
+			p.getBookings().add(b);
 		}
 		
 		FlightService.updateSeatAvailable(f, conn);
